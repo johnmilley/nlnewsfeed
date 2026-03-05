@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import shutil
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -69,12 +70,17 @@ def fetch_articles(sources):
             if published.tzinfo is None:
                 published = published.replace(tzinfo=timezone.utc)
 
+            summary = entry.get("summary", entry.get("description", ""))
+            summary = re.sub(r"<[^>]+>", "", summary).strip()
+            summary = summary[:200].rsplit(" ", 1)[0] if len(summary) > 200 else summary
+
             articles.append({
                 "title": entry.get("title", "Untitled"),
                 "link": entry.get("link", "#"),
                 "published": to_nl_time(published),
                 "source_name": source["name"],
                 "source_slug": source["slug"],
+                "summary": summary,
             })
 
     articles.sort(key=lambda a: a["published"], reverse=True)
