@@ -31,7 +31,7 @@
   </main>
 
   <footer>
-    Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} UTC</time>
+    Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} {{ 'NDT' if updated.utcoffset().total_seconds() == -9000 else 'NST' }}</time>
   </footer>
 
   <script>

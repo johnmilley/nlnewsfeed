@@ -4,7 +4,7 @@
 import json
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 import feedparser
@@ -15,6 +15,26 @@ from jinja2 import Environment, FileSystemLoader
 def load_sources(path="sources.json"):
     with open(path) as f:
         return json.load(f)
+
+
+NST = timezone(timedelta(hours=-3, minutes=-30))
+NDT = timezone(timedelta(hours=-2, minutes=-30))
+
+
+def to_nl_time(dt):
+    """Convert a datetime to Newfoundland time (NST/NDT)."""
+    utc_dt = dt.astimezone(timezone.utc)
+    year = utc_dt.year
+    # NDT: second Sunday in March 2:00 AM to first Sunday in November 2:00 AM
+    mar1 = datetime(year, 3, 1, tzinfo=timezone.utc)
+    spring = mar1 + timedelta(days=(6 - mar1.weekday()) % 7 + 7)
+    spring = spring.replace(hour=2)
+    nov1 = datetime(year, 11, 1, tzinfo=timezone.utc)
+    fall = nov1 + timedelta(days=(6 - nov1.weekday()) % 7)
+    fall = fall.replace(hour=2)
+    if spring <= utc_dt < fall:
+        return utc_dt.astimezone(NDT)
+    return utc_dt.astimezone(NST)
 
 
 def fetch_articles(sources):
@@ -52,7 +72,7 @@ def fetch_articles(sources):
             articles.append({
                 "title": entry.get("title", "Untitled"),
                 "link": entry.get("link", "#"),
-                "published": published,
+                "published": to_nl_time(published),
                 "source_name": source["name"],
                 "source_slug": source["slug"],
             })
@@ -65,7 +85,7 @@ def build_site(articles, sources):
     env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
     template = env.get_template("index.html")
 
-    now = datetime.now(timezone.utc)
+    now = to_nl_time(datetime.now(timezone.utc))
     html = template.render(articles=articles, sources=sources, updated=now)
 
     os.makedirs("output", exist_ok=True)
