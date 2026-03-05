@@ -15,6 +15,7 @@
   </header>
 
   <nav class="filters" aria-label="Filter by source">
+    <button class="filter-btn" data-source="all" aria-pressed="true">All</button>
     {% for source in sources %}
     <button class="filter-btn" data-source="{{ source.slug }}" aria-pressed="true"><img class="filter-logo" src="logos/{{ source.slug }}.png" alt="" aria-hidden="true"> {{ source.name }}</button>
     {% endfor %}
@@ -25,7 +26,7 @@
     <article class="article-row" data-source="{{ article.source_slug }}" role="article">
       <time class="article-time" datetime="{{ article.published.isoformat() }}">{{ article.published.strftime('%b %-d') }}  {{ article.published.strftime('%I:%M %p').lstrip('0') }}</time>
       <img class="source-logo" src="logos/{{ article.source_slug }}.png" alt="{{ article.source_name }}" title="{{ article.source_name }}">
-      <span class="article-title"><a href="{{ article.link }}" target="_blank" rel="noopener">{{ article.title }}</a></span>
+      <span class="article-title"><a href="{{ article.link }}">{{ article.title }}</a></span>
     </article>
     {% endfor %}
   </main>
@@ -59,43 +60,50 @@
         updateLabel();
       });
 
+      // Visited links
+      var visited = JSON.parse(localStorage.getItem('visited') || '[]');
+      var visitedSet = new Set(visited);
+      document.querySelectorAll('.article-title a').forEach(function(a) {
+        if (visitedSet.has(a.href)) a.classList.add('visited');
+        a.addEventListener('click', function() {
+          if (!visitedSet.has(a.href)) {
+            visitedSet.add(a.href);
+            visited.push(a.href);
+            // Keep only last 500 entries to avoid unbounded growth
+            if (visited.length > 500) visited = visited.slice(-500);
+            localStorage.setItem('visited', JSON.stringify(visited));
+          }
+          a.classList.add('visited');
+        });
+      });
+
       // Source filters
       const buttons = document.querySelectorAll('.filter-btn');
       const articles = document.querySelectorAll('.article-row');
-      var allOn = true; // tracks whether all sources are currently shown
+      var activeSource = null; // null means show all
 
       function applyFilters() {
         articles.forEach(function(article) {
           var src = article.getAttribute('data-source');
-          var btn = document.querySelector('.filter-btn[data-source="' + src + '"]');
-          article.style.display = btn.getAttribute('aria-pressed') === 'true' ? '' : 'none';
+          article.style.display = (!activeSource || src === activeSource) ? '' : 'none';
+        });
+        buttons.forEach(function(b) {
+          var s = b.getAttribute('data-source');
+          if (s === 'all') {
+            b.setAttribute('aria-pressed', activeSource ? 'false' : 'true');
+          } else {
+            b.setAttribute('aria-pressed', (!activeSource || s === activeSource) ? 'true' : 'false');
+          }
         });
       }
 
       buttons.forEach(function(btn) {
         btn.addEventListener('click', function() {
-          if (allOn) {
-            // First click from "all on": solo this source
-            buttons.forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
-            btn.setAttribute('aria-pressed', 'true');
-            allOn = false;
+          var src = btn.getAttribute('data-source');
+          if (src === 'all' || activeSource === src) {
+            activeSource = null;
           } else {
-            // Toggle individually
-            var pressed = btn.getAttribute('aria-pressed') === 'true';
-            btn.setAttribute('aria-pressed', String(!pressed));
-            // If all are now on, reset to allOn state
-            var allPressed = Array.from(buttons).every(function(b) {
-              return b.getAttribute('aria-pressed') === 'true';
-            });
-            if (allPressed) allOn = true;
-            // If none are on, turn all back on
-            var nonePressed = Array.from(buttons).every(function(b) {
-              return b.getAttribute('aria-pressed') === 'false';
-            });
-            if (nonePressed) {
-              buttons.forEach(function(b) { b.setAttribute('aria-pressed', 'true'); });
-              allOn = true;
-            }
+            activeSource = src;
           }
           applyFilters();
         });
