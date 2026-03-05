@@ -31,7 +31,8 @@
   </main>
 
   <footer>
-    Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} {{ 'NDT' if updated.utcoffset().total_seconds() == -9000 else 'NST' }}</time>
+    <p>Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} {{ 'NDT' if updated.utcoffset().total_seconds() == -9000 else 'NST' }}</time></p>
+    <!-- NL media: Want your outlet included here? All you need is an RSS feed. Learn how at https://www.rssboard.org/rss-specification or reach out via GitHub at https://github.com/johnmilley/nlnewsfeed -->
   </footer>
 
   <script>
