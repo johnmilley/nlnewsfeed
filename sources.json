@@ -1,0 +1,7 @@
+[
+  { "name": "CBC NL", "slug": "cbc", "feed_url": "https://www.cbc.ca/webfeed/rss/rss-canada-newfoundland" },
+  { "name": "NTV", "slug": "ntv", "feed_url": "https://ntv.ca/feed/" },
+  { "name": "VOCM", "slug": "vocm", "feed_url": "https://vocm.com/feed/" },
+  { "name": "The Independent", "slug": "independent", "feed_url": "https://theindependent.ca/feed/" },
+  { "name": "Shoreline News", "slug": "shoreline", "feed_url": "https://theshoreline.ca/feed/" }
+]

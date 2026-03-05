@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NL News Feed</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#feed">Skip to feed</a>
+
+  <header>
+    <h1>NL News Feed</h1>
+    <button id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <nav class="filters" aria-label="Filter by source">
+    {% for source in sources %}
+    <button class="filter-btn" data-source="{{ source.slug }}" aria-pressed="true"><img class="filter-logo" src="logos/{{ source.slug }}.png" alt="" aria-hidden="true"> {{ source.name }}</button>
+    {% endfor %}
+  </nav>
+
+  <main id="feed" role="feed" aria-label="News articles">
+    {% for article in articles %}
+    <article class="article-row" data-source="{{ article.source_slug }}" role="article">
+      <time class="article-time" datetime="{{ article.published.isoformat() }}">{{ article.published.strftime('%b %d, %I:%M %p') }}</time>
+      <img class="source-logo" src="logos/{{ article.source_slug }}.png" alt="{{ article.source_name }}" title="{{ article.source_name }}">
+      <span class="article-title"><a href="{{ article.link }}" target="_blank" rel="noopener">{{ article.title }}</a></span>
+    </article>
+    {% endfor %}
+  </main>
+
+  <footer>
+    Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} UTC</time>
+  </footer>
+
+  <script>
+    (function() {
+      // Theme toggle
+      const toggle = document.getElementById('theme-toggle');
+      const root = document.documentElement;
+      const saved = localStorage.getItem('theme');
+      if (saved) {
+        root.setAttribute('data-theme', saved);
+      }
+      function updateLabel() {
+        const isDark = root.getAttribute('data-theme') === 'dark' ||
+          (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        toggle.textContent = isDark ? 'Light' : 'Dark';
+      }
+      updateLabel();
+      toggle.addEventListener('click', function() {
+        const isDark = root.getAttribute('data-theme') === 'dark' ||
+          (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        updateLabel();
+      });
+
+      // Source filters
+      const buttons = document.querySelectorAll('.filter-btn');
+      const articles = document.querySelectorAll('.article-row');
+      var allOn = true; // tracks whether all sources are currently shown
+
+      function applyFilters() {
+        articles.forEach(function(article) {
+          var src = article.getAttribute('data-source');
+          var btn = document.querySelector('.filter-btn[data-source="' + src + '"]');
+          article.style.display = btn.getAttribute('aria-pressed') === 'true' ? '' : 'none';
+        });
+      }
+
+      buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (allOn) {
+            // First click from "all on": solo this source
+            buttons.forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+            btn.setAttribute('aria-pressed', 'true');
+            allOn = false;
+          } else {
+            // Toggle individually
+            var pressed = btn.getAttribute('aria-pressed') === 'true';
+            btn.setAttribute('aria-pressed', String(!pressed));
+            // If all are now on, reset to allOn state
+            var allPressed = Array.from(buttons).every(function(b) {
+              return b.getAttribute('aria-pressed') === 'true';
+            });
+            if (allPressed) allOn = true;
+            // If none are on, turn all back on
+            var nonePressed = Array.from(buttons).every(function(b) {
+              return b.getAttribute('aria-pressed') === 'false';
+            });
+            if (nonePressed) {
+              buttons.forEach(function(b) { b.setAttribute('aria-pressed', 'true'); });
+              allOn = true;
+            }
+          }
+          applyFilters();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
