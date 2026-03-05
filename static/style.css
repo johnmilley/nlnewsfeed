@@ -1,45 +1,48 @@
 :root {
-  --bg: #faf8f5;
-  --bg-secondary: #f0ede8;
-  --text: #2c2c2c;
-  --text-muted: #6b6b6b;
-  --border: #ddd8d0;
-  --link: #1a5276;
-  --link-hover: #0e3650;
-  --toggle-bg: #e0dcd6;
-  --toggle-hover: #d0ccc4;
+  --bg: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --text: #111111;
+  --text-muted: #555555;
+  --border: #cccccc;
+  --border-heavy: #333333;
+  --link: #111111;
+  --link-hover: #444444;
+  --toggle-bg: #eeeeee;
+  --toggle-hover: #dddddd;
 }
 
 [data-theme="dark"] {
-  --bg: #1a1a1e;
-  --bg-secondary: #25252a;
-  --text: #d8d8d8;
-  --text-muted: #888;
-  --border: #3a3a40;
-  --link: #6cb4e8;
-  --link-hover: #90ccf4;
-  --toggle-bg: #35353a;
-  --toggle-hover: #45454a;
+  --bg: #111111;
+  --bg-secondary: #1a1a1a;
+  --text: #e0e0e0;
+  --text-muted: #999999;
+  --border: #333333;
+  --border-heavy: #cccccc;
+  --link: #e0e0e0;
+  --link-hover: #aaaaaa;
+  --toggle-bg: #222222;
+  --toggle-hover: #2a2a2a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1a1a1e;
-    --bg-secondary: #25252a;
-    --text: #d8d8d8;
-    --text-muted: #888;
-    --border: #3a3a40;
-    --link: #6cb4e8;
-    --link-hover: #90ccf4;
-    --toggle-bg: #35353a;
-    --toggle-hover: #45454a;
+    --bg: #111111;
+    --bg-secondary: #1a1a1a;
+    --text: #e0e0e0;
+    --text-muted: #999999;
+    --border: #333333;
+    --border-heavy: #cccccc;
+    --link: #e0e0e0;
+    --link-hover: #aaaaaa;
+    --toggle-bg: #222222;
+    --toggle-hover: #2a2a2a;
   }
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: Georgia, "Times New Roman", Times, serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
@@ -51,8 +54,8 @@ body {
   top: -100%;
   left: 0;
   padding: 0.5rem 1rem;
-  background: var(--link);
-  color: #fff;
+  background: var(--text);
+  color: var(--bg);
   z-index: 100;
   text-decoration: none;
 }
@@ -62,14 +65,16 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1rem;
 }
 
 header h1 {
   font-size: 1.2rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 #theme-toggle {
@@ -77,8 +82,9 @@ header h1 {
   border: 1px solid var(--border);
   color: var(--text);
   padding: 0.3rem 0.7rem;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
+  font-family: inherit;
   font-size: 0.85rem;
 }
 #theme-toggle:hover { background: var(--toggle-hover); }
@@ -87,23 +93,25 @@ header h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  padding: 0.7rem 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
 }
 
 .filter-btn {
-  background: var(--toggle-bg);
+  background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
   padding: 0.2rem 0.6rem;
-  border-radius: 3px;
+  border-radius: 0;
   cursor: pointer;
+  font-family: inherit;
   font-size: 0.8rem;
   transition: opacity 0.15s;
 }
-.filter-btn[aria-pressed="true"] { opacity: 1; font-weight: 600; }
-.filter-btn[aria-pressed="false"] { opacity: 0.45; }
+.filter-btn[aria-pressed="true"] { opacity: 1; font-weight: 600; border-color: var(--text); }
+.filter-btn[aria-pressed="false"] { opacity: 0.4; }
 
 main {
   max-width: 960px;
@@ -117,7 +125,7 @@ main {
   gap: 0.6rem;
   padding: 0.35rem 0;
   border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .article-row:last-child { border-bottom: none; }
@@ -126,6 +134,7 @@ main {
   flex-shrink: 0;
   color: var(--text-muted);
   font-size: 0.8rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-variant-numeric: tabular-nums;
   min-width: 6.5rem;
 }
@@ -154,17 +163,18 @@ main {
 
 footer {
   text-align: center;
+  max-width: 960px;
+  margin: 1rem auto 0;
   padding: 1rem;
   font-size: 0.75rem;
   color: var(--text-muted);
   border-top: 1px solid var(--border);
-  margin-top: 1rem;
 }
 
 @media (max-width: 600px) {
   header { padding: 0.7rem 1rem; }
   .filters { padding: 0.5rem 1rem; }
   main { padding: 0.3rem 0.6rem; }
-  .article-row { font-size: 0.82rem; gap: 0.4rem; }
-  .article-time { min-width: 5.5rem; font-size: 0.75rem; }
+  .article-row { font-size: 0.95rem; gap: 0.4rem; }
+  .article-time { min-width: 5.5rem; font-size: 0.8rem; }
 }
