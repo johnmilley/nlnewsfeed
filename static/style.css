@@ -1,41 +1,41 @@
 :root {
-  --bg: #e8ecea;
-  --bg-secondary: #dde3e0;
-  --text: #1e2d2f;
-  --text-muted: #5e7275;
-  --border: #b8c5c2;
-  --border-heavy: #2a3d40;
-  --link: #1e2d2f;
-  --link-hover: #2e6b6e;
-  --toggle-bg: #d2dbd7;
-  --toggle-hover: #c4cfcb;
+  --bg: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --text: #111111;
+  --text-muted: #777777;
+  --border: #dddddd;
+  --border-heavy: #111111;
+  --link: #111111;
+  --link-hover: #555555;
+  --toggle-bg: #f0f0f0;
+  --toggle-hover: #e0e0e0;
 }
 
 [data-theme="dark"] {
-  --bg: #0e1b22;
-  --bg-secondary: #142630;
-  --text: #c8d5d8;
-  --text-muted: #6a8a90;
-  --border: #1e3a45;
-  --border-heavy: #8ab0b8;
-  --link: #c8d5d8;
-  --link-hover: #5ea8b0;
-  --toggle-bg: #152a35;
-  --toggle-hover: #1a3340;
+  --bg: #111111;
+  --bg-secondary: #1a1a1a;
+  --text: #e0e0e0;
+  --text-muted: #888888;
+  --border: #333333;
+  --border-heavy: #e0e0e0;
+  --link: #e0e0e0;
+  --link-hover: #aaaaaa;
+  --toggle-bg: #222222;
+  --toggle-hover: #2a2a2a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1b22;
-    --bg-secondary: #142630;
-    --text: #c8d5d8;
-    --text-muted: #6a8a90;
-    --border: #1e3a45;
-    --border-heavy: #8ab0b8;
-    --link: #c8d5d8;
-    --link-hover: #5ea8b0;
-    --toggle-bg: #152a35;
-    --toggle-hover: #1a3340;
+    --bg: #111111;
+    --bg-secondary: #1a1a1a;
+    --text: #e0e0e0;
+    --text-muted: #888888;
+    --border: #333333;
+    --border-heavy: #e0e0e0;
+    --link: #e0e0e0;
+    --link-hover: #aaaaaa;
+    --toggle-bg: #222222;
+    --toggle-hover: #2a2a2a;
   }
 }
 
@@ -78,11 +78,11 @@ header h1 {
 }
 
 #theme-toggle {
-  background: var(--toggle-bg);
+  background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 0.3rem 0.8rem;
-  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.8rem;
@@ -179,11 +179,18 @@ footer {
   .filters { padding: 0.5rem 1rem; }
   main { padding: 0.3rem 0.6rem; }
   .article-row {
-    font-size: 0.95rem;
-    gap: 0.2rem 0.4rem;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    font-size: 0.9rem;
+    gap: 0.4rem;
   }
-  .article-time { min-width: auto; font-size: 0.75rem; }
-  .article-title { flex-basis: 100%; order: 1; }
+  .article-time {
+    min-width: 5.5rem;
+    width: 5.5rem;
+    font-size: 0.7rem;
+    text-align: right;
+  }
+  .source-logo {
+    width: 16px;
+    height: 16px;
+    margin: 0 0.1rem;
+  }
 }
