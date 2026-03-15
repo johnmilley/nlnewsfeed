@@ -99,7 +99,10 @@ def build_site(articles, sources):
         f.write(html)
 
     shutil.copy("static/style.css", "output/style.css")
+    shutil.copy("static/manifest.json", "output/manifest.json")
+    shutil.copy("static/sw.js", "output/sw.js")
     shutil.copytree("static/logos", "output/logos", dirs_exist_ok=True)
+    shutil.copytree("static/icons", "output/icons", dirs_exist_ok=True)
     print(f"Built output/index.html with {len(articles)} articles.")
 
 
