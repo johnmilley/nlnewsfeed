@@ -5,19 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NL News Feed</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Prevent FOUC for theme and minimal mode
+    (function() {
+      var theme = localStorage.getItem('theme');
+      if (theme) document.documentElement.setAttribute('data-theme', theme);
+      if (localStorage.getItem('minimal') === 'true') document.documentElement.classList.add('minimal');
+    })();
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#feed">Skip to feed</a>
 
   <header>
     <h1>NL News Feed</h1>
-    <button id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
+    <button id="settings-toggle" aria-label="Settings" aria-expanded="false" aria-controls="settings-panel">
+      <svg class="gear-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.902 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291a1.873 1.873 0 0 0-1.116-2.693l-.318-.094c-.835-.246-.835-1.428 0-1.674l.319-.094a1.873 1.873 0 0 0 1.115-2.692l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg>
+      <span class="settings-label">Settings</span>
+    </button>
   </header>
 
+  <div id="settings-backdrop" class="settings-backdrop" hidden></div>
+  <div id="settings-panel" class="settings-panel" role="dialog" aria-label="Settings" hidden>
+    <div class="settings-section">
+      <h2 class="settings-heading">Appearance</h2>
+      <label class="settings-option"><input type="checkbox" id="setting-dark"> Dark mode</label>
+      <label class="settings-option"><input type="checkbox" id="setting-minimal"> Minimal mode</label>
+    </div>
+    <div class="settings-section">
+      <h2 class="settings-heading">Sources</h2>
+      {% for source in sources %}
+      <label class="settings-option"><input type="checkbox" class="source-toggle" data-slug="{{ source.slug }}" checked> {{ source.name }}</label>
+      {% endfor %}
+    </div>
+  </div>
+
   <nav class="filters" aria-label="Filter by source">
-    <button class="filter-btn" data-source="all" aria-pressed="true">All</button>
+    <button class="filter-btn" data-source="all" aria-pressed="true"><span class="filter-text">All</span></button>
     {% for source in sources %}
-    <button class="filter-btn" data-source="{{ source.slug }}" aria-pressed="true"><img class="filter-logo" src="logos/{{ source.slug }}.png" alt="" aria-hidden="true"> {{ source.name }}</button>
+    <button class="filter-btn" data-source="{{ source.slug }}" aria-pressed="false"><img class="filter-logo" src="logos/{{ source.slug }}.png" alt="" aria-hidden="true"> <span class="filter-text">{{ source.name }}</span></button>
     {% endfor %}
   </nav>
 
@@ -38,29 +64,85 @@
 
   <script>
     (function() {
-      // Theme toggle
-      const toggle = document.getElementById('theme-toggle');
-      const root = document.documentElement;
-      const saved = localStorage.getItem('theme');
-      if (saved) {
-        root.setAttribute('data-theme', saved);
+      var root = document.documentElement;
+      var allSlugs = [{% for source in sources %}'{{ source.slug }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+
+      // --- Settings panel ---
+      var settingsToggle = document.getElementById('settings-toggle');
+      var settingsPanel = document.getElementById('settings-panel');
+      var settingsBackdrop = document.getElementById('settings-backdrop');
+
+      function openSettings() {
+        settingsPanel.hidden = false;
+        settingsBackdrop.hidden = false;
+        settingsToggle.setAttribute('aria-expanded', 'true');
+        settingsPanel.focus();
       }
-      function updateLabel() {
-        const isDark = root.getAttribute('data-theme') === 'dark' ||
-          (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        toggle.textContent = isDark ? 'Light' : 'Dark';
+
+      function closeSettings() {
+        settingsPanel.hidden = true;
+        settingsBackdrop.hidden = true;
+        settingsToggle.setAttribute('aria-expanded', 'false');
+        settingsToggle.focus();
       }
-      updateLabel();
-      toggle.addEventListener('click', function() {
-        const isDark = root.getAttribute('data-theme') === 'dark' ||
-          (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        const next = isDark ? 'light' : 'dark';
-        root.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-        updateLabel();
+
+      settingsToggle.addEventListener('click', function() {
+        if (settingsPanel.hidden) openSettings(); else closeSettings();
       });
 
-      // Visited links
+      settingsBackdrop.addEventListener('click', closeSettings);
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !settingsPanel.hidden) closeSettings();
+      });
+
+      // --- Dark mode setting ---
+      var darkCheckbox = document.getElementById('setting-dark');
+      function isDark() {
+        var t = root.getAttribute('data-theme');
+        return t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      }
+      darkCheckbox.checked = isDark();
+      darkCheckbox.addEventListener('change', function() {
+        var next = darkCheckbox.checked ? 'dark' : 'light';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      // --- Minimal mode setting ---
+      var minimalCheckbox = document.getElementById('setting-minimal');
+      minimalCheckbox.checked = root.classList.contains('minimal');
+      minimalCheckbox.addEventListener('change', function() {
+        if (minimalCheckbox.checked) {
+          root.classList.add('minimal');
+          localStorage.setItem('minimal', 'true');
+        } else {
+          root.classList.remove('minimal');
+          localStorage.setItem('minimal', 'false');
+        }
+      });
+
+      // --- Enabled sources ---
+      var stored = localStorage.getItem('enabledSources');
+      var enabledSources = stored ? JSON.parse(stored) : allSlugs.slice();
+
+      var sourceToggles = document.querySelectorAll('.source-toggle');
+      sourceToggles.forEach(function(cb) {
+        var slug = cb.getAttribute('data-slug');
+        cb.checked = enabledSources.indexOf(slug) !== -1;
+        cb.addEventListener('change', function() {
+          // Build enabledSources from checkboxes
+          var enabled = [];
+          sourceToggles.forEach(function(c) {
+            if (c.checked) enabled.push(c.getAttribute('data-slug'));
+          });
+          enabledSources = enabled;
+          localStorage.setItem('enabledSources', JSON.stringify(enabled));
+          applyFilters();
+        });
+      });
+
+      // --- Visited links ---
       var visited = JSON.parse(localStorage.getItem('visited') || '[]');
       var visitedSet = new Set(visited);
       document.querySelectorAll('.article-title a').forEach(function(a) {
@@ -69,7 +151,6 @@
           if (!visitedSet.has(a.href)) {
             visitedSet.add(a.href);
             visited.push(a.href);
-            // Keep only last 500 entries to avoid unbounded growth
             if (visited.length > 500) visited = visited.slice(-500);
             localStorage.setItem('visited', JSON.stringify(visited));
           }
@@ -77,22 +158,33 @@
         });
       });
 
-      // Source filters
-      const buttons = document.querySelectorAll('.filter-btn');
-      const articles = document.querySelectorAll('.article-row');
-      var activeSource = null; // null means show all
+      // --- Filtering ---
+      var buttons = document.querySelectorAll('.filter-btn');
+      var articles = document.querySelectorAll('.article-row');
+      var viewMode = 'all';
+
+      function isEnabled(slug) {
+        return enabledSources.indexOf(slug) !== -1;
+      }
 
       function applyFilters() {
         articles.forEach(function(article) {
           var src = article.getAttribute('data-source');
-          article.style.display = (!activeSource || src === activeSource) ? '' : 'none';
+          var show = viewMode === 'all' ? isEnabled(src) : src === viewMode;
+          article.style.display = show ? '' : 'none';
         });
+
         buttons.forEach(function(b) {
           var s = b.getAttribute('data-source');
-          if (s === 'all') {
-            b.setAttribute('aria-pressed', activeSource ? 'false' : 'true');
+          var active;
+          if (viewMode === 'all') {
+            active = s === 'all' || (s !== 'all' && isEnabled(s));
           } else {
-            b.setAttribute('aria-pressed', (!activeSource || s === activeSource) ? 'true' : 'false');
+            active = s === viewMode;
+          }
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          if (s !== 'all') {
+            b.style.display = isEnabled(s) ? '' : 'none';
           }
         });
       }
@@ -100,15 +192,16 @@
       buttons.forEach(function(btn) {
         btn.addEventListener('click', function() {
           var src = btn.getAttribute('data-source');
-          if (src === 'all' || activeSource === src) {
-            activeSource = null;
+          if (src === viewMode || src === 'all') {
+            viewMode = 'all';
           } else {
-            activeSource = src;
+            viewMode = src;
           }
           applyFilters();
         });
       });
 
+      applyFilters();
     })();
   </script>
 </body>
