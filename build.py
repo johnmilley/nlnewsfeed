@@ -159,12 +159,17 @@ def build_site(articles, sources):
 
     now = to_nl_time(datetime.now(timezone.utc))
 
+    # Cache-busting hash from CSS file content
+    import hashlib
+    with open("static/style.css", "rb") as f:
+        css_hash = hashlib.md5(f.read()).hexdigest()[:8]
+
     # Only show last 7 days on the main page
     cutoff = now - timedelta(days=7)
     recent = [a for a in articles if a["published"] >= cutoff]
     recent.sort(key=lambda a: a["published"], reverse=True)
 
-    html = template.render(articles=recent, sources=sources, updated=now)
+    html = template.render(articles=recent, sources=sources, updated=now, css_hash=css_hash)
 
     os.makedirs("output", exist_ok=True)
     with open("output/index.html", "w") as f:
@@ -172,16 +177,16 @@ def build_site(articles, sources):
 
     # Render search page
     search_template = env.get_template("search.html")
-    search_html = search_template.render(sources=sources)
+    search_html = search_template.render(sources=sources, css_hash=css_hash)
     with open("output/search.html", "w") as f:
         f.write(search_html)
 
     # Split archive into per-year JSON files for search page
-    # (remove stale monolithic file if present)
-    os.makedirs("output/data", exist_ok=True)
-    stale = os.path.join("output/data", "articles.json")
-    if os.path.exists(stale):
-        os.remove(stale)
+    # Clean out stale data files first
+    data_dir = "output/data"
+    if os.path.exists(data_dir):
+        shutil.rmtree(data_dir)
+    os.makedirs(data_dir)
     by_year = {}
     for a in articles:
         pub = a["published"]

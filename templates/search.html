@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Search Archive - Good Feed: NL News</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v={{ css_hash }}">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111111">
   <script>
@@ -22,7 +22,25 @@
 
   <header>
     <h1><a href="/" class="header-home">Good Feed: NL News</a></h1>
+    <button id="settings-toggle" aria-label="Settings" aria-expanded="false" aria-controls="settings-panel">
+      <svg class="gear-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.902 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291a1.873 1.873 0 0 0-1.116-2.693l-.318-.094c-.835-.246-.835-1.428 0-1.674l.319-.094a1.873 1.873 0 0 0 1.115-2.692l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg>
+      <span class="settings-label">Settings</span>
+    </button>
   </header>
+
+  <div id="settings-backdrop" class="settings-backdrop" hidden></div>
+  <div id="settings-panel" class="settings-panel" role="dialog" aria-label="Settings" hidden>
+    <div class="settings-section">
+      <h2 class="settings-heading">Appearance</h2>
+      <label class="settings-option"><input type="checkbox" id="setting-dark"> Dark mode</label>
+    </div>
+    <div class="settings-section">
+      <h2 class="settings-heading">Sources</h2>
+      {% for source in sources %}
+      <label class="settings-option"><input type="checkbox" class="source-toggle" data-slug="{{ source.slug }}" checked> {{ source.name }}</label>
+      {% endfor %}
+    </div>
+  </div>
 
   <div class="search-controls">
     <div class="search-bar">
@@ -38,10 +56,6 @@
     </div>
     <div class="search-meta">
       <span id="result-count"></span>
-      <button id="theme-toggle" class="theme-btn" aria-label="Toggle dark mode">
-        <span class="theme-icon-light">Dark</span>
-        <span class="theme-icon-dark">Light</span>
-      </button>
     </div>
   </div>
 
@@ -60,6 +74,7 @@
   <script>
     (function() {
       var root = document.documentElement;
+      var allSlugs = [{% for source in sources %}'{{ source.slug }}'{% if not loop.last %}, {% endif %}{% endfor %}];
       var searchInput = document.getElementById('search-input');
       var sourceFilter = document.getElementById('source-filter');
       var resultsEl = document.getElementById('results');
@@ -67,28 +82,94 @@
       var readyEl = document.getElementById('ready');
       var emptyEl = document.getElementById('empty');
       var countEl = document.getElementById('result-count');
-      var themeToggle = document.getElementById('theme-toggle');
       var yearBar = document.getElementById('year-bar');
 
       var yearIndex = [];       // [{year, count}]
       var loadedYears = {};     // {2025: [...articles], ...}
+      var activeYears = {};     // {2025: true, ...} — toggled on/off
       var loadingYears = {};    // {2025: promise, ...}
-      var allArticles = [];     // merged from loaded years
+      var allArticles = [];     // merged from active years only
+      var currentQuery = '';    // last search query for highlighting
       var debounceTimer = null;
       var PAGE_SIZE = 100;
       var rendered = 0;
       var filtered = [];
 
-      // --- Theme toggle ---
+      // --- Settings panel ---
+      var settingsToggle = document.getElementById('settings-toggle');
+      var settingsPanel = document.getElementById('settings-panel');
+      var settingsBackdrop = document.getElementById('settings-backdrop');
+
+      function openSettings() {
+        settingsPanel.hidden = false;
+        settingsBackdrop.hidden = false;
+        settingsToggle.setAttribute('aria-expanded', 'true');
+        settingsPanel.focus();
+      }
+
+      function closeSettings() {
+        settingsPanel.hidden = true;
+        settingsBackdrop.hidden = true;
+        settingsToggle.setAttribute('aria-expanded', 'false');
+        settingsToggle.focus();
+      }
+
+      settingsToggle.addEventListener('click', function() {
+        if (settingsPanel.hidden) openSettings(); else closeSettings();
+      });
+
+      settingsBackdrop.addEventListener('click', closeSettings);
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !settingsPanel.hidden) closeSettings();
+      });
+
+      // --- Dark mode setting ---
+      var darkCheckbox = document.getElementById('setting-dark');
       function isDark() {
         var t = root.getAttribute('data-theme');
         return t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
       }
-      themeToggle.addEventListener('click', function() {
-        var next = isDark() ? 'light' : 'dark';
+      darkCheckbox.checked = isDark();
+      darkCheckbox.addEventListener('change', function() {
+        var next = darkCheckbox.checked ? 'dark' : 'light';
         root.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
       });
+
+      // --- Enabled sources (settings panel) ---
+      var stored = localStorage.getItem('enabledSources');
+      var enabledSources = stored ? JSON.parse(stored) : allSlugs.slice();
+
+      var sourceToggles = document.querySelectorAll('.source-toggle');
+      sourceToggles.forEach(function(cb) {
+        var slug = cb.getAttribute('data-slug');
+        cb.checked = enabledSources.indexOf(slug) !== -1;
+        cb.addEventListener('change', function() {
+          var enabled = [];
+          sourceToggles.forEach(function(c) {
+            if (c.checked) enabled.push(c.getAttribute('data-slug'));
+          });
+          enabledSources = enabled;
+          localStorage.setItem('enabledSources', JSON.stringify(enabled));
+          updateSourceDropdown();
+          if (searchInput.value.trim()) applySearch();
+        });
+      });
+
+      // Sync the source dropdown with enabled sources
+      function updateSourceDropdown() {
+        var options = sourceFilter.querySelectorAll('option');
+        for (var i = 0; i < options.length; i++) {
+          var val = options[i].value;
+          if (val === 'all') continue;
+          options[i].hidden = enabledSources.indexOf(val) === -1;
+          if (options[i].hidden && sourceFilter.value === val) {
+            sourceFilter.value = 'all';
+          }
+        }
+      }
+      updateSourceDropdown();
 
       // --- Load year index, then current year ---
       fetch('data/years.json')
@@ -96,15 +177,17 @@
         .then(function(data) {
           yearIndex = data;
           buildYearBar();
-          // Load the most recent year automatically
+          // Load and activate the most recent year
           if (yearIndex.length > 0) {
-            return loadYear(yearIndex[0].year);
+            var firstYear = yearIndex[0].year;
+            activeYears[firstYear] = true;
+            return loadYear(firstYear);
           }
         })
         .then(function() {
           loadingEl.hidden = true;
           readyEl.hidden = false;
-          applySearch();
+          updateYearButtons();
           searchInput.focus();
         })
         .catch(function() {
@@ -120,8 +203,7 @@
           var btn = document.createElement('button');
           btn.className = 'year-btn';
           btn.setAttribute('data-year', y.year);
-          btn.textContent = y.year + ' (' + y.count + ')';
-          if (i === 0) btn.classList.add('loaded');
+          btn.textContent = y.year;
           btn.addEventListener('click', onYearClick);
           yearBar.appendChild(btn);
         }
@@ -130,15 +212,69 @@
       function onYearClick(e) {
         var btn = e.currentTarget;
         var year = parseInt(btn.getAttribute('data-year'));
-        if (loadedYears[year]) return; // already loaded
-        btn.classList.add('loading');
-        btn.disabled = true;
-        loadYear(year).then(function() {
-          btn.classList.remove('loading');
-          btn.classList.add('loaded');
-          btn.disabled = false;
-          applySearch();
-        });
+
+        // If not yet loaded, fetch it first
+        if (!loadedYears[year]) {
+          btn.classList.add('loading');
+          btn.disabled = true;
+          activeYears[year] = true;
+          loadYear(year).then(function() {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            rebuildFromActive();
+            applySearch();
+            updateYearButtons();
+          });
+          return;
+        }
+
+        // Toggle active state
+        if (activeYears[year]) {
+          delete activeYears[year];
+        } else {
+          activeYears[year] = true;
+        }
+        rebuildFromActive();
+        applySearch();
+        updateYearButtons();
+      }
+
+      function updateYearButtons() {
+        var btns = yearBar.querySelectorAll('.year-btn');
+        for (var i = 0; i < btns.length; i++) {
+          var year = parseInt(btns[i].getAttribute('data-year'));
+          btns[i].classList.toggle('active', !!activeYears[year]);
+          btns[i].classList.toggle('loaded', !!loadedYears[year] && !activeYears[year]);
+
+          // Show match count per year if there's an active search
+          var query = searchInput.value.toLowerCase().trim();
+          if (query && loadedYears[year]) {
+            var source = sourceFilter.value;
+            var count = countMatchesForYear(year, query, source);
+            btns[i].textContent = yearIndex[i].year + ' (' + count + ')';
+          } else {
+            btns[i].textContent = yearIndex[i].year;
+          }
+        }
+      }
+
+      function countMatchesForYear(year, query, source) {
+        var articles = loadedYears[year];
+        if (!articles) return 0;
+        var words = query.split(/\s+/);
+        var count = 0;
+        for (var i = 0; i < articles.length; i++) {
+          var a = articles[i];
+          if (enabledSources.indexOf(a.source_slug) === -1) continue;
+          if (source !== 'all' && a.source_slug !== source) continue;
+          var text = (a.title + ' ' + a.summary).toLowerCase();
+          var match = true;
+          for (var j = 0; j < words.length; j++) {
+            if (text.indexOf(words[j]) === -1) { match = false; break; }
+          }
+          if (match) count++;
+        }
+        return count;
       }
 
       function loadYear(year) {
@@ -149,19 +285,19 @@
           .then(function(r) { return r.json(); })
           .then(function(data) {
             loadedYears[year] = data;
-            rebuildAllArticles();
             delete loadingYears[year];
           });
         loadingYears[year] = p;
         return p;
       }
 
-      function rebuildAllArticles() {
+      function rebuildFromActive() {
         allArticles = [];
-        // Merge in year order (descending)
-        var years = Object.keys(loadedYears).sort(function(a, b) { return b - a; });
+        var years = Object.keys(activeYears).sort(function(a, b) { return b - a; });
         for (var i = 0; i < years.length; i++) {
-          allArticles = allArticles.concat(loadedYears[years[i]]);
+          if (loadedYears[years[i]]) {
+            allArticles = allArticles.concat(loadedYears[years[i]]);
+          }
         }
         allArticles.sort(function(a, b) {
           return b.published.localeCompare(a.published);
@@ -172,28 +308,29 @@
       function applySearch() {
         var query = searchInput.value.toLowerCase().trim();
         var source = sourceFilter.value;
-        var hasSearch = query || source !== 'all';
+        currentQuery = query;
 
-        if (!hasSearch) {
+        // Require a text query — source filter alone is not enough
+        if (!query) {
           filtered = [];
           rendered = 0;
           clearResults();
           countEl.textContent = '';
           emptyEl.hidden = true;
           readyEl.hidden = false;
+          updateYearButtons();
           return;
         }
 
         readyEl.hidden = true;
 
+        var words = query.split(/\s+/);
         filtered = allArticles.filter(function(a) {
+          if (enabledSources.indexOf(a.source_slug) === -1) return false;
           if (source !== 'all' && a.source_slug !== source) return false;
-          if (query) {
-            var text = (a.title + ' ' + a.summary).toLowerCase();
-            var words = query.split(/\s+/);
-            for (var i = 0; i < words.length; i++) {
-              if (text.indexOf(words[i]) === -1) return false;
-            }
+          var text = (a.title + ' ' + a.summary).toLowerCase();
+          for (var i = 0; i < words.length; i++) {
+            if (text.indexOf(words[i]) === -1) return false;
           }
           return true;
         });
@@ -205,6 +342,7 @@
         var total = filtered.length;
         countEl.textContent = total === 1 ? '1 article' : total + ' articles';
         emptyEl.hidden = total > 0;
+        updateYearButtons();
       }
 
       var lastYear = null;
@@ -236,6 +374,36 @@
         rendered = end;
       }
 
+      function buildSnippet(summary, query) {
+        if (!summary || !query) return '';
+        var lower = summary.toLowerCase();
+        var words = query.split(/\s+/);
+        // Find the first matching word's position
+        var firstIdx = summary.length;
+        for (var i = 0; i < words.length; i++) {
+          var idx = lower.indexOf(words[i]);
+          if (idx !== -1 && idx < firstIdx) firstIdx = idx;
+        }
+        if (firstIdx >= summary.length) return '';
+
+        // Extract a window around the match
+        var start = Math.max(0, firstIdx - 40);
+        var end = Math.min(summary.length, firstIdx + 80);
+        var snippet = summary.substring(start, end);
+        if (start > 0) snippet = '...' + snippet;
+        if (end < summary.length) snippet = snippet + '...';
+
+        // Highlight all matching words (escape HTML first)
+        snippet = snippet.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        for (var i = 0; i < words.length; i++) {
+          if (!words[i]) continue;
+          var escaped = words[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          var re = new RegExp('(' + escaped + ')', 'gi');
+          snippet = snippet.replace(re, '<mark>$1</mark>');
+        }
+        return snippet;
+      }
+
       function createRow(a) {
         var row = document.createElement('article');
         row.className = 'article-row';
@@ -260,16 +428,27 @@
         logo.alt = a.source_name;
         logo.title = a.source_name;
 
-        var titleSpan = document.createElement('span');
-        titleSpan.className = 'article-title';
+        var content = document.createElement('div');
+        content.className = 'article-content';
+
         var link = document.createElement('a');
+        link.className = 'article-link';
         link.href = a.link;
         link.textContent = a.title;
-        titleSpan.appendChild(link);
+        content.appendChild(link);
+
+        // Add snippet with highlighted matches
+        var snippet = buildSnippet(a.summary || '', currentQuery);
+        if (snippet) {
+          var snippetEl = document.createElement('div');
+          snippetEl.className = 'article-snippet';
+          snippetEl.innerHTML = snippet;
+          content.appendChild(snippetEl);
+        }
 
         row.appendChild(time);
         row.appendChild(logo);
-        row.appendChild(titleSpan);
+        row.appendChild(content);
         return row;
       }
 
@@ -286,7 +465,10 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(applySearch, 200);
       });
-      sourceFilter.addEventListener('change', applySearch);
+      sourceFilter.addEventListener('change', function() {
+        // Only re-search if there's already a query
+        if (searchInput.value.trim()) applySearch();
+      });
 
       // --- URL params (shareable searches) ---
       function readParams() {

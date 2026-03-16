@@ -352,12 +352,30 @@ main {
   vertical-align: middle;
 }
 
-.article-title a {
+.article-title a, .article-link {
   color: var(--link);
   text-decoration: none;
 }
-.article-title a:hover { color: var(--link-hover); text-decoration: underline; }
+.article-title a:hover, .article-link:hover { color: var(--link-hover); text-decoration: underline; }
 .article-title a.visited { color: var(--text-muted); opacity: 0.65; }
+
+.article-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.article-snippet {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+
+.article-snippet mark {
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+}
 
 footer {
   text-align: center;
@@ -463,7 +481,8 @@ footer {
   transition: border-color 0.15s, opacity 0.15s;
 }
 .year-btn:hover { border-color: var(--text); color: var(--text); }
-.year-btn.loaded { border-color: var(--accent); color: var(--text); font-weight: 600; }
+.year-btn.active { border-color: var(--accent); color: var(--text); font-weight: 600; background: var(--bg-secondary); }
+.year-btn.loaded { border-color: var(--border-accent); color: var(--text-muted); }
 .year-btn.loading { opacity: 0.5; cursor: wait; }
 
 .year-header {

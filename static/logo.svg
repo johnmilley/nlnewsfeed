@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Newspaper page with folded corner -->
+  <path d="M80 32 h312 l88 88 v360 H80 Z" fill="#ffffff" stroke="#111111" stroke-width="16"/>
+  <path d="M392 32 v88 h88" fill="none" stroke="#111111" stroke-width="16" stroke-linejoin="round"/>
+  <!-- Horizontal rules (newspaper lines) -->
+  <line x1="128" y1="400" x2="384" y2="400" stroke="#cccccc" stroke-width="6"/>
+  <line x1="128" y1="430" x2="340" y2="430" stroke="#cccccc" stroke-width="6"/>
+  <line x1="128" y1="460" x2="360" y2="460" stroke="#cccccc" stroke-width="6"/>
+  <!-- Simplified Newfoundland and Labrador outline -->
+  <g transform="translate(115, 100) scale(1.8)" fill="none" stroke="#111111" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Labrador -->
+    <path d="M30 10 L55 5 L75 15 L90 8 L105 18 L100 40 L108 55 L95 70 L98 85 L85 80 L70 90 L55 78 L40 85 L30 70 L35 50 L25 35 Z"/>
+    <!-- Island of Newfoundland -->
+    <path d="M55 100 L72 95 L85 100 L100 95 L115 105 L120 120 L130 115 L140 125 L135 140 L125 148 L115 142 L105 150 L95 145 L80 155 L65 150 L55 140 L50 125 L58 115 L52 108 Z"/>
+  </g>
+</svg>
