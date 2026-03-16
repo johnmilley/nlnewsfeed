@@ -87,29 +87,147 @@ def fetch_articles(sources):
     return articles
 
 
+CACHE_PATH = "data/articles.json"
+
+
+def load_cache():
+    """Load the article cache from disk."""
+    if not os.path.exists(CACHE_PATH):
+        return []
+    with open(CACHE_PATH) as f:
+        return json.load(f)
+
+
+def save_cache(articles):
+    """Save the article cache to disk."""
+    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
+    with open(CACHE_PATH, "w") as f:
+        json.dump(articles, f, indent=2, default=str)
+    print(f"Saved {len(articles)} articles to cache.")
+
+
+def merge_articles(cached, fresh):
+    """Merge fresh articles into cached, deduplicating by link URL."""
+    seen = {a["link"] for a in cached}
+    merged = list(cached)
+    new_count = 0
+    for article in fresh:
+        if article["link"] not in seen:
+            seen.add(article["link"])
+            merged.append(article)
+            new_count += 1
+    print(f"Merged {new_count} new articles ({len(merged)} total).")
+    return merged
+
+
+def serialize_articles(articles):
+    """Convert articles to JSON-serializable format."""
+    serialized = []
+    for a in articles:
+        serialized.append({
+            "title": a["title"],
+            "link": a["link"],
+            "published": a["published"].isoformat() if isinstance(a["published"], datetime) else a["published"],
+            "source_name": a["source_name"],
+            "source_slug": a["source_slug"],
+            "summary": a["summary"],
+        })
+    return serialized
+
+
+def deserialize_articles(raw):
+    """Convert cached JSON articles back to usable dicts with datetime objects."""
+    articles = []
+    for a in raw:
+        pub = a["published"]
+        if isinstance(pub, str):
+            pub = datetime.fromisoformat(pub)
+        articles.append({
+            "title": a["title"],
+            "link": a["link"],
+            "published": pub,
+            "source_name": a["source_name"],
+            "source_slug": a["source_slug"],
+            "summary": a.get("summary", ""),
+        })
+    return articles
+
+
 def build_site(articles, sources):
     env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
     template = env.get_template("index.html")
 
     now = to_nl_time(datetime.now(timezone.utc))
-    html = template.render(articles=articles, sources=sources, updated=now)
+
+    # Only show last 7 days on the main page
+    cutoff = now - timedelta(days=7)
+    recent = [a for a in articles if a["published"] >= cutoff]
+    recent.sort(key=lambda a: a["published"], reverse=True)
+
+    html = template.render(articles=recent, sources=sources, updated=now)
 
     os.makedirs("output", exist_ok=True)
     with open("output/index.html", "w") as f:
         f.write(html)
+
+    # Render search page
+    search_template = env.get_template("search.html")
+    search_html = search_template.render(sources=sources)
+    with open("output/search.html", "w") as f:
+        f.write(search_html)
+
+    # Split archive into per-year JSON files for search page
+    # (remove stale monolithic file if present)
+    os.makedirs("output/data", exist_ok=True)
+    stale = os.path.join("output/data", "articles.json")
+    if os.path.exists(stale):
+        os.remove(stale)
+    by_year = {}
+    for a in articles:
+        pub = a["published"]
+        if isinstance(pub, str):
+            y = int(pub[:4])
+        else:
+            y = pub.year
+        by_year.setdefault(y, []).append(a)
+
+    years_index = []
+    for y in sorted(by_year.keys(), reverse=True):
+        year_articles = serialize_articles(by_year[y]) if isinstance(by_year[y][0]["published"], datetime) else by_year[y]
+        with open(f"output/data/{y}.json", "w") as f:
+            json.dump(year_articles, f, default=str)
+        years_index.append({"year": y, "count": len(year_articles)})
+
+    with open("output/data/years.json", "w") as f:
+        json.dump(years_index, f)
+    print(f"Split archive into {len(years_index)} year files: {', '.join(str(y['year']) for y in years_index)}")
 
     shutil.copy("static/style.css", "output/style.css")
     shutil.copy("static/manifest.json", "output/manifest.json")
     shutil.copy("static/sw.js", "output/sw.js")
     shutil.copytree("static/logos", "output/logos", dirs_exist_ok=True)
     shutil.copytree("static/icons", "output/icons", dirs_exist_ok=True)
-    print(f"Built output/index.html with {len(articles)} articles.")
+    print(f"Built output/index.html with {len(recent)} articles (7-day view).")
 
 
 def main():
     sources = load_sources()
-    articles = fetch_articles(sources)
-    build_site(articles, sources)
+
+    # Load existing cache
+    cached_raw = load_cache()
+    cached = deserialize_articles(cached_raw)
+
+    # Fetch fresh articles from RSS
+    fresh = fetch_articles(sources)
+
+    # Merge fresh into cache (dedup by URL)
+    all_articles = merge_articles(cached, fresh)
+
+    # Save the full archive back to cache
+    save_cache(serialize_articles(all_articles))
+
+    # Build the site (7-day view)
+    build_site(all_articles, sources)
 
 
 if __name__ == "__main__":

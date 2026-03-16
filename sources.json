@@ -1,6 +1,5 @@
 [
   { "name": "CBC NL", "slug": "cbc", "feed_url": "https://www.cbc.ca/webfeed/rss/rss-canada-newfoundland" },
-  { "name": "Global News NL", "slug": "globalnews", "feed_url": "https://globalnews.ca/tag/newfoundland-and-labrador/feed/" },
   { "name": "NTV", "slug": "ntv", "feed_url": "https://ntv.ca/feed/" },
   { "name": "SaltWire", "slug": "saltwire", "feed_url": "https://www.saltwire.com/category/newfoundland-labrador/feed.xml" },
   { "name": "Shoreline News", "slug": "shoreline", "feed_url": "https://theshoreline.ca/feed/" },

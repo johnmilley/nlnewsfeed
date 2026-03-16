@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Archive - Good Feed: NL News</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111111">
+  <script>
+    (function() {
+      var r = document.documentElement;
+      var theme = localStorage.getItem('theme');
+      if (theme) r.setAttribute('data-theme', theme);
+      r.setAttribute('data-palette', 'ocean');
+      r.setAttribute('data-font', 'system');
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#results">Skip to results</a>
+
+  <header>
+    <h1><a href="/" class="header-home">Good Feed: NL News</a></h1>
+  </header>
+
+  <div class="search-controls">
+    <div class="search-bar">
+      <input type="search" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off">
+    </div>
+    <div class="search-filters">
+      <select id="source-filter" aria-label="Filter by source">
+        <option value="all">All sources</option>
+        {% for source in sources %}
+        <option value="{{ source.slug }}">{{ source.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="search-meta">
+      <span id="result-count"></span>
+      <button id="theme-toggle" class="theme-btn" aria-label="Toggle dark mode">
+        <span class="theme-icon-light">Dark</span>
+        <span class="theme-icon-dark">Light</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="year-bar" class="year-bar" hidden></div>
+
+  <main id="results" role="feed" aria-label="Search results">
+    <div id="loading" class="search-status">Loading archive...</div>
+    <div id="ready" class="search-status" hidden>Type a keyword to search the archive.</div>
+    <div id="empty" class="search-status" hidden>No articles match your search.</div>
+  </main>
+
+  <footer>
+    <p><a href="/">Back to feed</a></p>
+  </footer>
+
+  <script>
+    (function() {
+      var root = document.documentElement;
+      var searchInput = document.getElementById('search-input');
+      var sourceFilter = document.getElementById('source-filter');
+      var resultsEl = document.getElementById('results');
+      var loadingEl = document.getElementById('loading');
+      var readyEl = document.getElementById('ready');
+      var emptyEl = document.getElementById('empty');
+      var countEl = document.getElementById('result-count');
+      var themeToggle = document.getElementById('theme-toggle');
+      var yearBar = document.getElementById('year-bar');
+
+      var yearIndex = [];       // [{year, count}]
+      var loadedYears = {};     // {2025: [...articles], ...}
+      var loadingYears = {};    // {2025: promise, ...}
+      var allArticles = [];     // merged from loaded years
+      var debounceTimer = null;
+      var PAGE_SIZE = 100;
+      var rendered = 0;
+      var filtered = [];
+
+      // --- Theme toggle ---
+      function isDark() {
+        var t = root.getAttribute('data-theme');
+        return t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      }
+      themeToggle.addEventListener('click', function() {
+        var next = isDark() ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      // --- Load year index, then current year ---
+      fetch('data/years.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          yearIndex = data;
+          buildYearBar();
+          // Load the most recent year automatically
+          if (yearIndex.length > 0) {
+            return loadYear(yearIndex[0].year);
+          }
+        })
+        .then(function() {
+          loadingEl.hidden = true;
+          readyEl.hidden = false;
+          applySearch();
+          searchInput.focus();
+        })
+        .catch(function() {
+          loadingEl.textContent = 'Failed to load archive.';
+        });
+
+      // --- Year bar ---
+      function buildYearBar() {
+        yearBar.innerHTML = '';
+        yearBar.hidden = false;
+        for (var i = 0; i < yearIndex.length; i++) {
+          var y = yearIndex[i];
+          var btn = document.createElement('button');
+          btn.className = 'year-btn';
+          btn.setAttribute('data-year', y.year);
+          btn.textContent = y.year + ' (' + y.count + ')';
+          if (i === 0) btn.classList.add('loaded');
+          btn.addEventListener('click', onYearClick);
+          yearBar.appendChild(btn);
+        }
+      }
+
+      function onYearClick(e) {
+        var btn = e.currentTarget;
+        var year = parseInt(btn.getAttribute('data-year'));
+        if (loadedYears[year]) return; // already loaded
+        btn.classList.add('loading');
+        btn.disabled = true;
+        loadYear(year).then(function() {
+          btn.classList.remove('loading');
+          btn.classList.add('loaded');
+          btn.disabled = false;
+          applySearch();
+        });
+      }
+
+      function loadYear(year) {
+        if (loadedYears[year]) return Promise.resolve();
+        if (loadingYears[year]) return loadingYears[year];
+
+        var p = fetch('data/' + year + '.json')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            loadedYears[year] = data;
+            rebuildAllArticles();
+            delete loadingYears[year];
+          });
+        loadingYears[year] = p;
+        return p;
+      }
+
+      function rebuildAllArticles() {
+        allArticles = [];
+        // Merge in year order (descending)
+        var years = Object.keys(loadedYears).sort(function(a, b) { return b - a; });
+        for (var i = 0; i < years.length; i++) {
+          allArticles = allArticles.concat(loadedYears[years[i]]);
+        }
+        allArticles.sort(function(a, b) {
+          return b.published.localeCompare(a.published);
+        });
+      }
+
+      // --- Search and filter ---
+      function applySearch() {
+        var query = searchInput.value.toLowerCase().trim();
+        var source = sourceFilter.value;
+        var hasSearch = query || source !== 'all';
+
+        if (!hasSearch) {
+          filtered = [];
+          rendered = 0;
+          clearResults();
+          countEl.textContent = '';
+          emptyEl.hidden = true;
+          readyEl.hidden = false;
+          return;
+        }
+
+        readyEl.hidden = true;
+
+        filtered = allArticles.filter(function(a) {
+          if (source !== 'all' && a.source_slug !== source) return false;
+          if (query) {
+            var text = (a.title + ' ' + a.summary).toLowerCase();
+            var words = query.split(/\s+/);
+            for (var i = 0; i < words.length; i++) {
+              if (text.indexOf(words[i]) === -1) return false;
+            }
+          }
+          return true;
+        });
+
+        rendered = 0;
+        clearResults();
+        renderBatch();
+
+        var total = filtered.length;
+        countEl.textContent = total === 1 ? '1 article' : total + ' articles';
+        emptyEl.hidden = total > 0;
+      }
+
+      var lastYear = null;
+
+      function clearResults() {
+        var els = resultsEl.querySelectorAll('.article-row, .year-header');
+        for (var i = 0; i < els.length; i++) {
+          resultsEl.removeChild(els[i]);
+        }
+        lastYear = null;
+      }
+
+      function renderBatch() {
+        var end = Math.min(rendered + PAGE_SIZE, filtered.length);
+        var frag = document.createDocumentFragment();
+
+        for (var i = rendered; i < end; i++) {
+          var year = new Date(filtered[i].published).getFullYear();
+          if (year !== lastYear) {
+            var h = document.createElement('h2');
+            h.className = 'year-header';
+            h.textContent = year;
+            frag.appendChild(h);
+            lastYear = year;
+          }
+          frag.appendChild(createRow(filtered[i]));
+        }
+        resultsEl.insertBefore(frag, emptyEl);
+        rendered = end;
+      }
+
+      function createRow(a) {
+        var row = document.createElement('article');
+        row.className = 'article-row';
+        row.setAttribute('data-source', a.source_slug);
+
+        var d = new Date(a.published);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var hrs = d.getHours() % 12 || 12;
+        var mins = d.getMinutes().toString().padStart(2, '0');
+        var ampm = d.getHours() >= 12 ? 'pm' : 'am';
+        var dateStr = months[d.getMonth()] + ' ' + d.getDate();
+        var timeStr = hrs + ':' + mins + ampm;
+
+        var time = document.createElement('time');
+        time.className = 'article-time';
+        time.setAttribute('datetime', a.published);
+        time.innerHTML = '<span class="date-part">' + dateStr + '</span> <span class="time-part">' + timeStr + '</span>';
+
+        var logo = document.createElement('img');
+        logo.className = 'source-logo';
+        logo.src = 'logos/' + a.source_slug + '.png';
+        logo.alt = a.source_name;
+        logo.title = a.source_name;
+
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'article-title';
+        var link = document.createElement('a');
+        link.href = a.link;
+        link.textContent = a.title;
+        titleSpan.appendChild(link);
+
+        row.appendChild(time);
+        row.appendChild(logo);
+        row.appendChild(titleSpan);
+        return row;
+      }
+
+      // --- Infinite scroll ---
+      window.addEventListener('scroll', function() {
+        if (rendered >= filtered.length) return;
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 400) {
+          renderBatch();
+        }
+      });
+
+      // --- Event listeners ---
+      searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(applySearch, 200);
+      });
+      sourceFilter.addEventListener('change', applySearch);
+
+      // --- URL params (shareable searches) ---
+      function readParams() {
+        var p = new URLSearchParams(window.location.search);
+        if (p.get('q')) searchInput.value = p.get('q');
+        if (p.get('source')) sourceFilter.value = p.get('source');
+      }
+
+      function writeParams() {
+        var p = new URLSearchParams();
+        if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
+        if (sourceFilter.value !== 'all') p.set('source', sourceFilter.value);
+        var qs = p.toString();
+        var url = window.location.pathname + (qs ? '?' + qs : '');
+        history.replaceState(null, '', url);
+      }
+
+      readParams();
+
+      var origApply = applySearch;
+      applySearch = function() {
+        origApply();
+        writeParams();
+      };
+    })();
+  </script>
+</body>
+</html>

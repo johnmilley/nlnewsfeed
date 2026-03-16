@@ -12,11 +12,13 @@
   <meta name="apple-mobile-web-app-title" content="Good Feed">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <script>
-    // Prevent FOUC for theme and minimal mode
     (function() {
+      var r = document.documentElement;
       var theme = localStorage.getItem('theme');
-      if (theme) document.documentElement.setAttribute('data-theme', theme);
-      if (localStorage.getItem('minimal') === 'true') document.documentElement.classList.add('minimal');
+      if (theme) r.setAttribute('data-theme', theme);
+      r.setAttribute('data-palette', 'ocean');
+      r.setAttribute('data-font', 'system');
+      if (localStorage.getItem('minimal') === 'true') r.classList.add('minimal');
     })();
   </script>
 </head>
@@ -38,6 +40,39 @@
       <label class="settings-option"><input type="checkbox" id="setting-dark"> Dark mode</label>
       <label class="settings-option"><input type="checkbox" id="setting-minimal"> Minimal mode</label>
     </div>
+    <!-- Palette/font preview — uncomment to re-enable picker UI
+    <div class="settings-section">
+      <h2 class="settings-heading">Palette</h2>
+      <div class="palette-options">
+        <button class="palette-btn" data-value="slate" aria-pressed="false" title="Slate"></button>
+        <button class="palette-btn" data-value="ocean" aria-pressed="true" title="Ocean"></button>
+        <button class="palette-btn" data-value="coral" aria-pressed="false" title="Coral"></button>
+        <button class="palette-btn" data-value="sage" aria-pressed="false" title="Sage"></button>
+        <button class="palette-btn" data-value="lavender" aria-pressed="false" title="Lavender"></button>
+        <button class="palette-btn" data-value="amber" aria-pressed="false" title="Amber"></button>
+        <button class="palette-btn" data-value="rose" aria-pressed="false" title="Rose"></button>
+        <button class="palette-btn" data-value="sky" aria-pressed="false" title="Sky"></button>
+        <button class="palette-btn" data-value="mint" aria-pressed="false" title="Mint"></button>
+        <button class="palette-btn" data-value="sand" aria-pressed="false" title="Sand"></button>
+        <button class="palette-btn" data-value="dusk" aria-pressed="false" title="Dusk"></button>
+        <button class="palette-btn" data-value="clay" aria-pressed="false" title="Clay"></button>
+        <button class="palette-btn" data-value="storm" aria-pressed="false" title="Storm"></button>
+        <button class="palette-btn" data-value="peach" aria-pressed="false" title="Peach"></button>
+        <button class="palette-btn" data-value="berry" aria-pressed="false" title="Berry"></button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h2 class="settings-heading">Font</h2>
+      <div class="font-options">
+        <button class="font-btn" data-value="georgia" aria-pressed="false">Georgia</button>
+        <button class="font-btn" data-value="system" aria-pressed="true">System</button>
+        <button class="font-btn" data-value="palatino" aria-pressed="false">Palatino</button>
+        <button class="font-btn" data-value="verdana" aria-pressed="false">Verdana</button>
+        <button class="font-btn" data-value="trebuchet" aria-pressed="false">Trebuchet</button>
+        <button class="font-btn" data-value="mono" aria-pressed="false">Mono</button>
+      </div>
+    </div>
+    -->
     <div class="settings-section">
       <h2 class="settings-heading">Sources</h2>
       {% for source in sources %}
@@ -64,6 +99,7 @@
   </main>
 
   <footer>
+    <p><a href="search.html">Search archive</a></p>
     <p>Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} {{ 'NDT' if updated.utcoffset().total_seconds() == -9000 else 'NST' }}</time></p>
     <!-- NL media: Want your outlet included here? All you need is an RSS feed. Learn how at https://www.rssboard.org/rss-specification or reach out via GitHub at https://github.com/johnmilley/nlnewsfeed -->
   </footer>
@@ -127,6 +163,36 @@
           localStorage.setItem('minimal', 'false');
         }
       });
+
+      /* --- Palette/font picker (commented out, UI hidden) ---
+      var paletteBtns = document.querySelectorAll('.palette-btn');
+      var currentPalette = localStorage.getItem('palette') || 'ocean';
+      paletteBtns.forEach(function(btn) {
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-value') === currentPalette ? 'true' : 'false');
+        btn.addEventListener('click', function() {
+          currentPalette = btn.getAttribute('data-value');
+          root.setAttribute('data-palette', currentPalette);
+          localStorage.setItem('palette', currentPalette);
+          paletteBtns.forEach(function(b) {
+            b.setAttribute('aria-pressed', b.getAttribute('data-value') === currentPalette ? 'true' : 'false');
+          });
+        });
+      });
+
+      var fontBtns = document.querySelectorAll('.font-btn');
+      var currentFont = localStorage.getItem('font') || 'system';
+      fontBtns.forEach(function(btn) {
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-value') === currentFont ? 'true' : 'false');
+        btn.addEventListener('click', function() {
+          currentFont = btn.getAttribute('data-value');
+          root.setAttribute('data-font', currentFont);
+          localStorage.setItem('font', currentFont);
+          fontBtns.forEach(function(b) {
+            b.setAttribute('aria-pressed', b.getAttribute('data-value') === currentFont ? 'true' : 'false');
+          });
+        });
+      });
+      --- end palette/font picker */
 
       // --- Enabled sources ---
       var stored = localStorage.getItem('enabledSources');
