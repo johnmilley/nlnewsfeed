@@ -202,8 +202,23 @@ def parse_lastmod(lastmod_str):
         return None
 
 
+def title_from_url_slug(url):
+    """Derive a readable title from a URL slug (last path segment)."""
+    from urllib.parse import urlparse
+    path = urlparse(url).path.rstrip("/")
+    slug = path.split("/")[-1] if "/" in path else path
+    # Remove trailing numeric IDs (e.g. -100003142)
+    slug = re.sub(r'-\d{6,}$', '', slug)
+    # Convert hyphens to spaces and title-case
+    title = slug.replace("-", " ").strip()
+    if title:
+        return title[0].upper() + title[1:]
+    return None
+
+
 def backfill_from_sitemap(source_name, source_slug, sitemap_url,
-                          url_filter=None, year_filter=None, limit=None):
+                          url_filter=None, year_filter=None, limit=None,
+                          no_scrape=False, delay=None):
     """Backfill articles from a sitemap or sitemap index."""
     print(f"\n=== Backfilling {source_name} from sitemap ===")
     print(f"Sitemap: {sitemap_url}")
@@ -220,19 +235,34 @@ def backfill_from_sitemap(source_name, source_slug, sitemap_url,
         ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
         sitemap_locs = [loc.text for loc in root.findall(".//s:sitemap/s:loc", ns)]
 
-        # Filter to post sitemaps if possible
-        post_sitemaps = [s for s in sitemap_locs if "post" in s.lower()]
+        # Filter to post/story sitemaps if possible
+        post_sitemaps = [s for s in sitemap_locs if "post" in s.lower() or "story" in s.lower()]
         if not post_sitemaps:
             post_sitemaps = sitemap_locs
 
-        print(f"Found {len(post_sitemaps)} post sitemaps")
+        # Pre-filter sitemaps by year if URLs contain year params (e.g. ?y=2024)
+        if year_filter:
+            year_filtered = []
+            for s in post_sitemaps:
+                year_match = re.search(r'[?&]y=(\d{4})', s)
+                if year_match:
+                    if int(year_match.group(1)) in year_filter:
+                        year_filtered.append(s)
+                else:
+                    year_filtered.append(s)  # keep if no year in URL
+            if year_filtered:
+                print(f"Pre-filtered sitemaps by year: {len(sitemap_locs)} → {len(year_filtered)}")
+                post_sitemaps = year_filtered
 
+        print(f"Found {len(post_sitemaps)} sitemaps to fetch")
+
+        fetch_delay = delay or REQUEST_DELAY
         for i, sm_url in enumerate(post_sitemaps):
             print(f"  Fetching sitemap {i+1}/{len(post_sitemaps)}: {sm_url}")
             try:
                 urls = fetch_sitemap_urls(sm_url)
                 all_urls.extend(urls)
-                time.sleep(REQUEST_DELAY)
+                time.sleep(fetch_delay)
             except Exception as e:
                 print(f"    Error: {e}")
     else:
@@ -267,18 +297,25 @@ def backfill_from_sitemap(source_name, source_slug, sitemap_url,
         new_urls = new_urls[:limit]
         print(f"Limited to {limit} URLs")
 
-    # Scrape each page for title and summary
+    # Build articles — either scrape each page or derive from URL slug
     articles = []
+    scrape_delay = delay or REQUEST_DELAY
     for i, (url, lastmod) in enumerate(new_urls):
         if (i + 1) % 25 == 0 or i == 0:
-            print(f"  Scraping {i+1}/{len(new_urls)}: {url[:80]}...")
+            print(f"  {'Processing' if no_scrape else 'Scraping'} {i+1}/{len(new_urls)}: {url[:80]}...")
 
-        title, summary, page_date = scrape_page_meta(url)
+        if no_scrape:
+            title = title_from_url_slug(url)
+            summary = ""
+            pub_dt = parse_lastmod(lastmod) if lastmod else None
+        else:
+            title, summary, page_date = scrape_page_meta(url)
+            pub_dt = page_date or (parse_lastmod(lastmod) if lastmod else None)
+            time.sleep(scrape_delay)
+
         if not title:
             continue
 
-        # Prefer the page's own publish date over sitemap lastmod
-        pub_dt = page_date or (parse_lastmod(lastmod) if lastmod else None)
         if pub_dt is None:
             pub_dt = datetime.now(timezone.utc)
 
@@ -290,8 +327,6 @@ def backfill_from_sitemap(source_name, source_slug, sitemap_url,
             "source_slug": source_slug,
             "summary": summary,
         })
-
-        time.sleep(REQUEST_DELAY)
 
     # Merge into cache
     if articles:
@@ -434,13 +469,15 @@ SOURCES = {
         "name": "CBC NL",
         "slug": "cbc",
         "feed_url": "https://www.cbc.ca/webfeed/rss/rss-canada-newfoundland",
-        # No sitemap — Wayback only
+        "legacy_feed_url": "https://rss.cbc.ca/lineup/canada-newfoundland.xml",
+        # No sitemap — Wayback only (legacy feed has 147 monthly snapshots 2007-2026)
     },
     "saltwire": {
         "name": "SaltWire",
         "slug": "saltwire",
         "feed_url": "https://www.saltwire.com/category/newfoundland-labrador/feed.xml",
-        # Rolling sitemap only — Wayback is sparse
+        "sitemap": "https://www.saltwire.com/sitemap-old.xml",
+        "url_filter": lambda u: "/newfoundland-labrador/" in u,
     },
     "shoreline": {
         "name": "Shoreline News",
@@ -459,6 +496,9 @@ def main():
     parser.add_argument("--limit", type=int, help="Max articles to fetch per source")
     parser.add_argument("--method", choices=["sitemap", "wayback", "auto"], default="auto",
                         help="Backfill method (default: auto)")
+    parser.add_argument("--no-scrape", action="store_true",
+                        help="Derive titles from URL slugs instead of scraping pages (faster, avoids rate limits)")
+    parser.add_argument("--delay", type=float, help="Delay between requests in seconds (default: 0.5)")
     parser.add_argument("--list", action="store_true", help="List available sources")
     args = parser.parse_args()
 
@@ -470,6 +510,8 @@ def main():
                 methods.append("sitemap")
             if "feed_url" in cfg:
                 methods.append("wayback")
+            if "legacy_feed_url" in cfg:
+                methods.append("wayback-legacy")
             print(f"  {slug:15s} {cfg['name']:20s} methods: {', '.join(methods)}")
         return
 
@@ -504,13 +546,26 @@ def main():
                     url_filter=cfg.get("url_filter"),
                     year_filter=year_filter,
                     limit=args.limit,
+                    no_scrape=args.no_scrape,
+                    delay=args.delay,
                 )
 
         if method == "wayback":
+            # Use legacy feed URL if available (more Wayback snapshots)
+            feed_url = cfg.get("legacy_feed_url", cfg["feed_url"])
             backfill_from_wayback(
-                cfg["name"], cfg["slug"], cfg["feed_url"],
+                cfg["name"], cfg["slug"], feed_url,
                 year_filter=year_filter,
             )
+            # Also backfill from current feed URL if a legacy one was used
+            if "legacy_feed_url" in cfg:
+                try:
+                    backfill_from_wayback(
+                        cfg["name"], cfg["slug"], cfg["feed_url"],
+                        year_filter=year_filter,
+                    )
+                except Exception as e:
+                    print(f"  Current feed backfill failed: {e}")
 
 
 if __name__ == "__main__":
