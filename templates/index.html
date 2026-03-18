@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Good Feed: NL News</title>
+  <title>A Good Feed of NL News</title>
   <link rel="stylesheet" href="style.css?v={{ css_hash }}">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111111">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Good Feed">
+  <meta name="apple-mobile-web-app-title" content="NL News Feed">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <script>
     (function() {
       var r = document.documentElement;
       var theme = localStorage.getItem('theme');
       if (theme) r.setAttribute('data-theme', theme);
-      r.setAttribute('data-palette', 'ocean');
-      r.setAttribute('data-font', 'system');
       if (localStorage.getItem('minimal') === 'true') r.classList.add('minimal');
     })();
   </script>
@@ -26,7 +24,7 @@
   <a class="skip-link" href="#feed">Skip to feed</a>
 
   <header>
-    <h1>Good Feed: NL News</h1>
+    <h1><span class="brand-sub">A</span><span class="brand-main">GOOD FEED</span> <span class="brand-sub">of NL news</span></h1>
     <button id="settings-toggle" aria-label="Settings" aria-expanded="false" aria-controls="settings-panel">
       <svg class="gear-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.902 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291a1.873 1.873 0 0 0-1.116-2.693l-.318-.094c-.835-.246-.835-1.428 0-1.674l.319-.094a1.873 1.873 0 0 0 1.115-2.692l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg>
       <span class="settings-label">Settings</span>
@@ -40,39 +38,6 @@
       <label class="settings-option"><input type="checkbox" id="setting-dark"> Dark mode</label>
       <label class="settings-option"><input type="checkbox" id="setting-minimal"> Minimal mode</label>
     </div>
-    <!-- Palette/font preview — uncomment to re-enable picker UI
-    <div class="settings-section">
-      <h2 class="settings-heading">Palette</h2>
-      <div class="palette-options">
-        <button class="palette-btn" data-value="slate" aria-pressed="false" title="Slate"></button>
-        <button class="palette-btn" data-value="ocean" aria-pressed="true" title="Ocean"></button>
-        <button class="palette-btn" data-value="coral" aria-pressed="false" title="Coral"></button>
-        <button class="palette-btn" data-value="sage" aria-pressed="false" title="Sage"></button>
-        <button class="palette-btn" data-value="lavender" aria-pressed="false" title="Lavender"></button>
-        <button class="palette-btn" data-value="amber" aria-pressed="false" title="Amber"></button>
-        <button class="palette-btn" data-value="rose" aria-pressed="false" title="Rose"></button>
-        <button class="palette-btn" data-value="sky" aria-pressed="false" title="Sky"></button>
-        <button class="palette-btn" data-value="mint" aria-pressed="false" title="Mint"></button>
-        <button class="palette-btn" data-value="sand" aria-pressed="false" title="Sand"></button>
-        <button class="palette-btn" data-value="dusk" aria-pressed="false" title="Dusk"></button>
-        <button class="palette-btn" data-value="clay" aria-pressed="false" title="Clay"></button>
-        <button class="palette-btn" data-value="storm" aria-pressed="false" title="Storm"></button>
-        <button class="palette-btn" data-value="peach" aria-pressed="false" title="Peach"></button>
-        <button class="palette-btn" data-value="berry" aria-pressed="false" title="Berry"></button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <h2 class="settings-heading">Font</h2>
-      <div class="font-options">
-        <button class="font-btn" data-value="georgia" aria-pressed="false">Georgia</button>
-        <button class="font-btn" data-value="system" aria-pressed="true">System</button>
-        <button class="font-btn" data-value="palatino" aria-pressed="false">Palatino</button>
-        <button class="font-btn" data-value="verdana" aria-pressed="false">Verdana</button>
-        <button class="font-btn" data-value="trebuchet" aria-pressed="false">Trebuchet</button>
-        <button class="font-btn" data-value="mono" aria-pressed="false">Mono</button>
-      </div>
-    </div>
-    -->
     <div class="settings-section">
       <h2 class="settings-heading">Sources</h2>
       {% for source in sources %}
@@ -89,12 +54,17 @@
   </nav>
 
   <main id="feed" role="feed" aria-label="News articles">
-    {% for article in articles %}
+    {% for date_label, group in articles_by_date %}
+    <h2 class="date-header{% if date_label != today_label %} collapsible collapsed{% endif %}" data-date="{{ date_label }}">{{ date_label }}{% if date_label != today_label %}<span class="collapse-icon">&#9660;</span>{% endif %}</h2>
+    <div class="date-group-articles{% if date_label != today_label %} collapsed{% endif %}">
+    {% for article in group %}
     <article class="article-row" data-source="{{ article.source_slug }}" role="article">
-      <time class="article-time" datetime="{{ article.published.isoformat() }}"><span class="date-part">{{ article.published.strftime('%b %-d') }}</span> <span class="time-part">{{ article.published.strftime('%I:%M%p').lstrip('0').lower() }}</span></time>
+      <time class="article-time" datetime="{{ article.published.isoformat() }}">{{ article.published.strftime('%I:%M%p').lstrip('0').lower() }}</time>
       <img class="source-logo" src="logos/{{ article.source_slug }}.png" alt="{{ article.source_name }}" title="{{ article.source_name }}">
       <span class="article-title"><a href="{{ article.link }}">{{ article.title }}</a></span>
     </article>
+    {% endfor %}
+    </div>
     {% endfor %}
   </main>
 
@@ -164,36 +134,6 @@
         }
       });
 
-      /* --- Palette/font picker (commented out, UI hidden) ---
-      var paletteBtns = document.querySelectorAll('.palette-btn');
-      var currentPalette = localStorage.getItem('palette') || 'ocean';
-      paletteBtns.forEach(function(btn) {
-        btn.setAttribute('aria-pressed', btn.getAttribute('data-value') === currentPalette ? 'true' : 'false');
-        btn.addEventListener('click', function() {
-          currentPalette = btn.getAttribute('data-value');
-          root.setAttribute('data-palette', currentPalette);
-          localStorage.setItem('palette', currentPalette);
-          paletteBtns.forEach(function(b) {
-            b.setAttribute('aria-pressed', b.getAttribute('data-value') === currentPalette ? 'true' : 'false');
-          });
-        });
-      });
-
-      var fontBtns = document.querySelectorAll('.font-btn');
-      var currentFont = localStorage.getItem('font') || 'system';
-      fontBtns.forEach(function(btn) {
-        btn.setAttribute('aria-pressed', btn.getAttribute('data-value') === currentFont ? 'true' : 'false');
-        btn.addEventListener('click', function() {
-          currentFont = btn.getAttribute('data-value');
-          root.setAttribute('data-font', currentFont);
-          localStorage.setItem('font', currentFont);
-          fontBtns.forEach(function(b) {
-            b.setAttribute('aria-pressed', b.getAttribute('data-value') === currentFont ? 'true' : 'false');
-          });
-        });
-      });
-      --- end palette/font picker */
-
       // --- Enabled sources ---
       var stored = localStorage.getItem('enabledSources');
       var enabledSources = stored ? JSON.parse(stored) : allSlugs.slice();
@@ -203,7 +143,6 @@
         var slug = cb.getAttribute('data-slug');
         cb.checked = enabledSources.indexOf(slug) !== -1;
         cb.addEventListener('change', function() {
-          // Build enabledSources from checkboxes
           var enabled = [];
           sourceToggles.forEach(function(c) {
             if (c.checked) enabled.push(c.getAttribute('data-slug'));
@@ -230,6 +169,16 @@
         });
       });
 
+      // --- Collapsible date headers (not today) ---
+      var dateHeaders = document.querySelectorAll('.date-header');
+      document.querySelectorAll('.date-header.collapsible').forEach(function(header) {
+        header.addEventListener('click', function() {
+          var group = header.nextElementSibling;
+          header.classList.toggle('collapsed');
+          group.classList.toggle('collapsed');
+        });
+      });
+
       // --- Filtering ---
       var buttons = document.querySelectorAll('.filter-btn');
       var articles = document.querySelectorAll('.article-row');
@@ -244,6 +193,20 @@
           var src = article.getAttribute('data-source');
           var show = viewMode === 'all' ? isEnabled(src) : src === viewMode;
           article.style.display = show ? '' : 'none';
+        });
+
+        // Hide date headers whose group has no visible articles
+        dateHeaders.forEach(function(header) {
+          var group = header.nextElementSibling;
+          var rows = group.querySelectorAll('.article-row');
+          var hasVisible = false;
+          for (var i = 0; i < rows.length; i++) {
+            if (rows[i].style.display !== 'none') { hasVisible = true; break; }
+          }
+          header.style.display = hasVisible ? '' : 'none';
+          group.style.visibility = hasVisible ? '' : 'hidden';
+          if (!hasVisible) group.style.display = 'none';
+          else if (!group.classList.contains('collapsed')) group.style.display = '';
         });
 
         buttons.forEach(function(b) {

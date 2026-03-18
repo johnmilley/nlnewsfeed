@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search Archive - Good Feed: NL News</title>
+  <title>Search Archive - A Good Feed of NL News</title>
   <link rel="stylesheet" href="style.css?v={{ css_hash }}">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111111">
@@ -12,8 +12,6 @@
       var r = document.documentElement;
       var theme = localStorage.getItem('theme');
       if (theme) r.setAttribute('data-theme', theme);
-      r.setAttribute('data-palette', 'ocean');
-      r.setAttribute('data-font', 'system');
     })();
   </script>
 </head>
@@ -21,7 +19,7 @@
   <a class="skip-link" href="#results">Skip to results</a>
 
   <header>
-    <h1><a href="/" class="header-home">Good Feed: NL News</a></h1>
+    <h1><a href="/" class="header-home"><span class="brand-sub">A</span><span class="brand-main">GOOD FEED</span> <span class="brand-sub">of NL news</span></a></h1>
     <button id="settings-toggle" aria-label="Settings" aria-expanded="false" aria-controls="settings-panel">
       <svg class="gear-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.902 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291a1.873 1.873 0 0 0-1.116-2.693l-.318-.094c-.835-.246-.835-1.428 0-1.674l.319-.094a1.873 1.873 0 0 0 1.115-2.692l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg>
       <span class="settings-label">Settings</span>
@@ -34,12 +32,6 @@
       <h2 class="settings-heading">Appearance</h2>
       <label class="settings-option"><input type="checkbox" id="setting-dark"> Dark mode</label>
     </div>
-    <div class="settings-section">
-      <h2 class="settings-heading">Sources</h2>
-      {% for source in sources %}
-      <label class="settings-option"><input type="checkbox" class="source-toggle" data-slug="{{ source.slug }}" checked> {{ source.name }}</label>
-      {% endfor %}
-    </div>
   </div>
 
   <div class="search-controls">
@@ -47,23 +39,18 @@
       <input type="search" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off">
     </div>
     <div class="search-filters">
-      <select id="source-filter" aria-label="Filter by source">
-        <option value="all">All sources</option>
-        {% for source in sources %}
-        <option value="{{ source.slug }}">{{ source.name }}</option>
-        {% endfor %}
-      </select>
+      <input type="date" id="date-from" aria-label="From date">
+      <span class="search-filter-sep">to</span>
+      <input type="date" id="date-to" aria-label="To date">
     </div>
     <div class="search-meta">
       <span id="result-count"></span>
     </div>
   </div>
 
-  <div id="year-bar" class="year-bar" hidden></div>
-
   <main id="results" role="feed" aria-label="Search results">
     <div id="loading" class="search-status">Loading archive...</div>
-    <div id="ready" class="search-status" hidden>Type a keyword to search the archive.</div>
+    <div id="ready" class="search-status" hidden>Search by keyword or select a date range.</div>
     <div id="empty" class="search-status" hidden>No articles match your search.</div>
   </main>
 
@@ -74,22 +61,17 @@
   <script>
     (function() {
       var root = document.documentElement;
-      var allSlugs = [{% for source in sources %}'{{ source.slug }}'{% if not loop.last %}, {% endif %}{% endfor %}];
       var searchInput = document.getElementById('search-input');
-      var sourceFilter = document.getElementById('source-filter');
+      var dateFrom = document.getElementById('date-from');
+      var dateTo = document.getElementById('date-to');
       var resultsEl = document.getElementById('results');
       var loadingEl = document.getElementById('loading');
       var readyEl = document.getElementById('ready');
       var emptyEl = document.getElementById('empty');
       var countEl = document.getElementById('result-count');
-      var yearBar = document.getElementById('year-bar');
 
-      var yearIndex = [];       // [{year, count}]
-      var loadedYears = {};     // {2025: [...articles], ...}
-      var activeYears = {};     // {2025: true, ...} — toggled on/off
-      var loadingYears = {};    // {2025: promise, ...}
-      var allArticles = [];     // merged from active years only
-      var currentQuery = '';    // last search query for highlighting
+      var allArticles = [];
+      var currentQuery = '';
       var debounceTimer = null;
       var PAGE_SIZE = 100;
       var rendered = 0;
@@ -137,200 +119,69 @@
         localStorage.setItem('theme', next);
       });
 
-      // --- Enabled sources (settings panel) ---
-      var stored = localStorage.getItem('enabledSources');
-      var enabledSources = stored ? JSON.parse(stored) : allSlugs.slice();
-
-      var sourceToggles = document.querySelectorAll('.source-toggle');
-      sourceToggles.forEach(function(cb) {
-        var slug = cb.getAttribute('data-slug');
-        cb.checked = enabledSources.indexOf(slug) !== -1;
-        cb.addEventListener('change', function() {
-          var enabled = [];
-          sourceToggles.forEach(function(c) {
-            if (c.checked) enabled.push(c.getAttribute('data-slug'));
-          });
-          enabledSources = enabled;
-          localStorage.setItem('enabledSources', JSON.stringify(enabled));
-          updateSourceDropdown();
-          if (searchInput.value.trim()) applySearch();
-        });
-      });
-
-      // Sync the source dropdown with enabled sources
-      function updateSourceDropdown() {
-        var options = sourceFilter.querySelectorAll('option');
-        for (var i = 0; i < options.length; i++) {
-          var val = options[i].value;
-          if (val === 'all') continue;
-          options[i].hidden = enabledSources.indexOf(val) === -1;
-          if (options[i].hidden && sourceFilter.value === val) {
-            sourceFilter.value = 'all';
-          }
-        }
-      }
-      updateSourceDropdown();
-
-      // --- Load year index, then current year ---
+      // --- Load all years upfront ---
       fetch('data/years.json')
         .then(function(r) { return r.json(); })
-        .then(function(data) {
-          yearIndex = data;
-          buildYearBar();
-          // Load and activate the most recent year
-          if (yearIndex.length > 0) {
-            var firstYear = yearIndex[0].year;
-            activeYears[firstYear] = true;
-            return loadYear(firstYear);
-          }
+        .then(function(yearIndex) {
+          return Promise.all(yearIndex.map(function(y) {
+            return fetch('data/' + y.year + '.json').then(function(r) { return r.json(); });
+          }));
         })
-        .then(function() {
+        .then(function(yearArrays) {
+          for (var i = 0; i < yearArrays.length; i++) {
+            allArticles = allArticles.concat(yearArrays[i]);
+          }
+          allArticles.sort(function(a, b) {
+            return b.published.localeCompare(a.published);
+          });
           loadingEl.hidden = true;
           readyEl.hidden = false;
-          updateYearButtons();
-          searchInput.focus();
+          readParams();
+          if (searchInput.value.trim() || dateFrom.value || dateTo.value) {
+            applySearch();
+          } else {
+            searchInput.focus();
+          }
         })
         .catch(function() {
           loadingEl.textContent = 'Failed to load archive.';
         });
 
-      // --- Year bar ---
-      function buildYearBar() {
-        yearBar.innerHTML = '';
-        yearBar.hidden = false;
-        for (var i = 0; i < yearIndex.length; i++) {
-          var y = yearIndex[i];
-          var btn = document.createElement('button');
-          btn.className = 'year-btn';
-          btn.setAttribute('data-year', y.year);
-          btn.textContent = y.year;
-          btn.addEventListener('click', onYearClick);
-          yearBar.appendChild(btn);
-        }
-      }
-
-      function onYearClick(e) {
-        var btn = e.currentTarget;
-        var year = parseInt(btn.getAttribute('data-year'));
-
-        // If not yet loaded, fetch it first
-        if (!loadedYears[year]) {
-          btn.classList.add('loading');
-          btn.disabled = true;
-          activeYears[year] = true;
-          loadYear(year).then(function() {
-            btn.classList.remove('loading');
-            btn.disabled = false;
-            rebuildFromActive();
-            applySearch();
-            updateYearButtons();
-          });
-          return;
-        }
-
-        // Toggle active state
-        if (activeYears[year]) {
-          delete activeYears[year];
-        } else {
-          activeYears[year] = true;
-        }
-        rebuildFromActive();
-        applySearch();
-        updateYearButtons();
-      }
-
-      function updateYearButtons() {
-        var btns = yearBar.querySelectorAll('.year-btn');
-        for (var i = 0; i < btns.length; i++) {
-          var year = parseInt(btns[i].getAttribute('data-year'));
-          btns[i].classList.toggle('active', !!activeYears[year]);
-          btns[i].classList.toggle('loaded', !!loadedYears[year] && !activeYears[year]);
-
-          // Show match count per year if there's an active search
-          var query = searchInput.value.toLowerCase().trim();
-          if (query && loadedYears[year]) {
-            var source = sourceFilter.value;
-            var count = countMatchesForYear(year, query, source);
-            btns[i].textContent = yearIndex[i].year + ' (' + count + ')';
-          } else {
-            btns[i].textContent = yearIndex[i].year;
-          }
-        }
-      }
-
-      function countMatchesForYear(year, query, source) {
-        var articles = loadedYears[year];
-        if (!articles) return 0;
-        var words = query.split(/\s+/);
-        var count = 0;
-        for (var i = 0; i < articles.length; i++) {
-          var a = articles[i];
-          if (enabledSources.indexOf(a.source_slug) === -1) continue;
-          if (source !== 'all' && a.source_slug !== source) continue;
-          var text = (a.title + ' ' + a.summary).toLowerCase();
-          var match = true;
-          for (var j = 0; j < words.length; j++) {
-            if (text.indexOf(words[j]) === -1) { match = false; break; }
-          }
-          if (match) count++;
-        }
-        return count;
-      }
-
-      function loadYear(year) {
-        if (loadedYears[year]) return Promise.resolve();
-        if (loadingYears[year]) return loadingYears[year];
-
-        var p = fetch('data/' + year + '.json')
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            loadedYears[year] = data;
-            delete loadingYears[year];
-          });
-        loadingYears[year] = p;
-        return p;
-      }
-
-      function rebuildFromActive() {
-        allArticles = [];
-        var years = Object.keys(activeYears).sort(function(a, b) { return b - a; });
-        for (var i = 0; i < years.length; i++) {
-          if (loadedYears[years[i]]) {
-            allArticles = allArticles.concat(loadedYears[years[i]]);
-          }
-        }
-        allArticles.sort(function(a, b) {
-          return b.published.localeCompare(a.published);
-        });
-      }
-
       // --- Search and filter ---
       function applySearch() {
         var query = searchInput.value.toLowerCase().trim();
-        var source = sourceFilter.value;
+        var from = dateFrom.value;
+        var to = dateTo.value;
         currentQuery = query;
 
-        // Require a text query — source filter alone is not enough
-        if (!query) {
+        if (!query && !from && !to) {
           filtered = [];
           rendered = 0;
           clearResults();
           countEl.textContent = '';
           emptyEl.hidden = true;
           readyEl.hidden = false;
-          updateYearButtons();
+          writeParams();
           return;
         }
 
         readyEl.hidden = true;
 
-        var words = query.split(/\s+/);
+        var words = query ? query.split(/\s+/) : [];
+        // Pad "to" date to end of day for inclusive comparison
+        var toEnd = to ? to + 'T23:59:59' : '';
+
         filtered = allArticles.filter(function(a) {
-          if (enabledSources.indexOf(a.source_slug) === -1) return false;
-          if (source !== 'all' && a.source_slug !== source) return false;
-          var text = (a.title + ' ' + a.summary).toLowerCase();
-          for (var i = 0; i < words.length; i++) {
-            if (text.indexOf(words[i]) === -1) return false;
+          // Date filter
+          if (from && a.published.substring(0, 10) < from) return false;
+          if (toEnd && a.published.substring(0, 19) > toEnd) return false;
+
+          // Text filter
+          if (words.length > 0) {
+            var text = (a.title + ' ' + (a.summary || '')).toLowerCase();
+            for (var i = 0; i < words.length; i++) {
+              if (text.indexOf(words[i]) === -1) return false;
+            }
           }
           return true;
         });
@@ -342,31 +193,34 @@
         var total = filtered.length;
         countEl.textContent = total === 1 ? '1 article' : total + ' articles';
         emptyEl.hidden = total > 0;
-        updateYearButtons();
+        writeParams();
       }
 
-      var lastYear = null;
+      var lastDateLabel = null;
 
       function clearResults() {
-        var els = resultsEl.querySelectorAll('.article-row, .year-header');
+        var els = resultsEl.querySelectorAll('.article-row, .date-header');
         for (var i = 0; i < els.length; i++) {
           resultsEl.removeChild(els[i]);
         }
-        lastYear = null;
+        lastDateLabel = null;
       }
 
       function renderBatch() {
         var end = Math.min(rendered + PAGE_SIZE, filtered.length);
         var frag = document.createDocumentFragment();
+        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
         for (var i = rendered; i < end; i++) {
-          var year = new Date(filtered[i].published).getFullYear();
-          if (year !== lastYear) {
+          var d = new Date(filtered[i].published);
+          var label = days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+          if (label !== lastDateLabel) {
             var h = document.createElement('h2');
-            h.className = 'year-header';
-            h.textContent = year;
+            h.className = 'date-header';
+            h.textContent = label;
             frag.appendChild(h);
-            lastYear = year;
+            lastDateLabel = label;
           }
           frag.appendChild(createRow(filtered[i]));
         }
@@ -378,7 +232,6 @@
         if (!summary || !query) return '';
         var lower = summary.toLowerCase();
         var words = query.split(/\s+/);
-        // Find the first matching word's position
         var firstIdx = summary.length;
         for (var i = 0; i < words.length; i++) {
           var idx = lower.indexOf(words[i]);
@@ -386,14 +239,12 @@
         }
         if (firstIdx >= summary.length) return '';
 
-        // Extract a window around the match
         var start = Math.max(0, firstIdx - 40);
         var end = Math.min(summary.length, firstIdx + 80);
         var snippet = summary.substring(start, end);
         if (start > 0) snippet = '...' + snippet;
         if (end < summary.length) snippet = snippet + '...';
 
-        // Highlight all matching words (escape HTML first)
         snippet = snippet.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         for (var i = 0; i < words.length; i++) {
           if (!words[i]) continue;
@@ -410,17 +261,14 @@
         row.setAttribute('data-source', a.source_slug);
 
         var d = new Date(a.published);
-        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         var hrs = d.getHours() % 12 || 12;
         var mins = d.getMinutes().toString().padStart(2, '0');
         var ampm = d.getHours() >= 12 ? 'pm' : 'am';
-        var dateStr = months[d.getMonth()] + ' ' + d.getDate();
-        var timeStr = hrs + ':' + mins + ampm;
 
         var time = document.createElement('time');
         time.className = 'article-time';
         time.setAttribute('datetime', a.published);
-        time.innerHTML = '<span class="date-part">' + dateStr + '</span> <span class="time-part">' + timeStr + '</span>';
+        time.textContent = hrs + ':' + mins + ampm;
 
         var logo = document.createElement('img');
         logo.className = 'source-logo';
@@ -437,7 +285,6 @@
         link.textContent = a.title;
         content.appendChild(link);
 
-        // Add snippet with highlighted matches
         var snippet = buildSnippet(a.summary || '', currentQuery);
         if (snippet) {
           var snippetEl = document.createElement('div');
@@ -465,34 +312,26 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(applySearch, 200);
       });
-      sourceFilter.addEventListener('change', function() {
-        // Only re-search if there's already a query
-        if (searchInput.value.trim()) applySearch();
-      });
+      dateFrom.addEventListener('change', applySearch);
+      dateTo.addEventListener('change', applySearch);
 
-      // --- URL params (shareable searches) ---
+      // --- URL params ---
       function readParams() {
         var p = new URLSearchParams(window.location.search);
         if (p.get('q')) searchInput.value = p.get('q');
-        if (p.get('source')) sourceFilter.value = p.get('source');
+        if (p.get('from')) dateFrom.value = p.get('from');
+        if (p.get('to')) dateTo.value = p.get('to');
       }
 
       function writeParams() {
         var p = new URLSearchParams();
         if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
-        if (sourceFilter.value !== 'all') p.set('source', sourceFilter.value);
+        if (dateFrom.value) p.set('from', dateFrom.value);
+        if (dateTo.value) p.set('to', dateTo.value);
         var qs = p.toString();
         var url = window.location.pathname + (qs ? '?' + qs : '');
         history.replaceState(null, '', url);
       }
-
-      readParams();
-
-      var origApply = applySearch;
-      applySearch = function() {
-        origApply();
-        writeParams();
-      };
     })();
   </script>
 </body>

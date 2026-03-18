@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fetch RSS feeds from NL news sources and generate a static HTML page."""
 
+import html
 import json
 import os
 import re
@@ -72,6 +73,7 @@ def fetch_articles(sources):
 
             summary = entry.get("summary", entry.get("description", ""))
             summary = re.sub(r"<[^>]+>", "", summary).strip()
+            summary = html.unescape(summary)
             summary = summary[:200].rsplit(" ", 1)[0] if len(summary) > 200 else summary
 
             articles.append({
@@ -164,12 +166,21 @@ def build_site(articles, sources):
     with open("static/style.css", "rb") as f:
         css_hash = hashlib.md5(f.read()).hexdigest()[:8]
 
-    # Only show last 7 days on the main page
-    cutoff = now - timedelta(days=7)
+    # Only show last 7 calendar days on the main page (today + 6 previous days)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    cutoff = today_start - timedelta(days=6)
     recent = [a for a in articles if a["published"] >= cutoff]
     recent.sort(key=lambda a: a["published"], reverse=True)
 
-    html = template.render(articles=recent, sources=sources, updated=now, css_hash=css_hash)
+    # Group articles by date for display
+    from itertools import groupby as itertools_groupby
+    articles_by_date = []
+    for date_key, group in itertools_groupby(recent, key=lambda a: a["published"].strftime("%A, %B %-d")):
+        articles_by_date.append((date_key, list(group)))
+
+    today_label = now.strftime("%A, %B %-d")
+
+    html = template.render(articles_by_date=articles_by_date, sources=sources, updated=now, css_hash=css_hash, today_label=today_label)
 
     os.makedirs("output", exist_ok=True)
     with open("output/index.html", "w") as f:
