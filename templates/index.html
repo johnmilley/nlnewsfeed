@@ -16,35 +16,29 @@
       var r = document.documentElement;
       var theme = localStorage.getItem('theme');
       if (theme) r.setAttribute('data-theme', theme);
-      if (localStorage.getItem('minimal') === 'true') r.classList.add('minimal');
     })();
   </script>
 </head>
 <body>
   <a class="skip-link" href="#feed">Skip to feed</a>
 
-  <header>
-    <h1><span class="brand-sub">A</span><span class="brand-main">GOOD FEED</span> <span class="brand-sub">of NL news</span></h1>
-    <button id="settings-toggle" aria-label="Settings" aria-expanded="false" aria-controls="settings-panel">
-      <svg class="gear-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.902 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291a1.873 1.873 0 0 0-1.116-2.693l-.318-.094c-.835-.246-.835-1.428 0-1.674l.319-.094a1.873 1.873 0 0 0 1.115-2.692l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg>
-      <span class="settings-label">Settings</span>
-    </button>
-  </header>
-
-  <div id="settings-backdrop" class="settings-backdrop" hidden></div>
-  <div id="settings-panel" class="settings-panel" role="dialog" aria-label="Settings" hidden>
-    <div class="settings-section">
-      <h2 class="settings-heading">Appearance</h2>
-      <label class="settings-option"><input type="checkbox" id="setting-dark"> Dark mode</label>
-      <label class="settings-option"><input type="checkbox" id="setting-minimal"> Minimal mode</label>
-    </div>
-    <div class="settings-section">
+  <div class="top-bar">
+    <span id="nl-time" class="top-bar-item"></span>
+    <span id="weather-boxes" class="top-bar-weather"></span>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode"><svg class="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><svg class="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <button id="settings-toggle" class="settings-toggle" aria-label="Sources" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.902 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291a1.873 1.873 0 0 0-1.116-2.693l-.318-.094c-.835-.246-.835-1.428 0-1.674l.319-.094a1.873 1.873 0 0 0 1.115-2.692l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.116l.094-.318z"/></svg></button>
+    <div id="settings-backdrop" class="settings-backdrop" hidden></div>
+    <div id="settings-panel" class="settings-panel" role="dialog" aria-label="Sources" hidden>
       <h2 class="settings-heading">Sources</h2>
       {% for source in sources %}
       <label class="settings-option"><input type="checkbox" class="source-toggle" data-slug="{{ source.slug }}" checked> {{ source.name }}</label>
       {% endfor %}
     </div>
   </div>
+
+  <header>
+    <h1><span class="brand-sub">A</span><span class="brand-main">GOOD FEED</span> <span class="brand-sub">of NL news</span></h1>
+  </header>
 
   <nav class="filters" aria-label="Filter by source">
     <button class="filter-btn" data-source="all" aria-pressed="true"><span class="filter-text">All</span></button>
@@ -79,58 +73,36 @@
       var root = document.documentElement;
       var allSlugs = [{% for source in sources %}'{{ source.slug }}'{% if not loop.last %}, {% endif %}{% endfor %}];
 
+      // --- Theme toggle ---
+      document.getElementById('theme-toggle').addEventListener('click', function() {
+        var t = root.getAttribute('data-theme');
+        var dark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var next = dark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
       // --- Settings panel ---
       var settingsToggle = document.getElementById('settings-toggle');
       var settingsPanel = document.getElementById('settings-panel');
       var settingsBackdrop = document.getElementById('settings-backdrop');
 
-      function openSettings() {
-        settingsPanel.hidden = false;
-        settingsBackdrop.hidden = false;
-        settingsToggle.setAttribute('aria-expanded', 'true');
-        settingsPanel.focus();
-      }
-
-      function closeSettings() {
+      settingsToggle.addEventListener('click', function() {
+        var open = settingsPanel.hidden;
+        settingsPanel.hidden = !open;
+        settingsBackdrop.hidden = !open;
+        settingsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      settingsBackdrop.addEventListener('click', function() {
         settingsPanel.hidden = true;
         settingsBackdrop.hidden = true;
         settingsToggle.setAttribute('aria-expanded', 'false');
-        settingsToggle.focus();
-      }
-
-      settingsToggle.addEventListener('click', function() {
-        if (settingsPanel.hidden) openSettings(); else closeSettings();
       });
-
-      settingsBackdrop.addEventListener('click', closeSettings);
-
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && !settingsPanel.hidden) closeSettings();
-      });
-
-      // --- Dark mode setting ---
-      var darkCheckbox = document.getElementById('setting-dark');
-      function isDark() {
-        var t = root.getAttribute('data-theme');
-        return t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      }
-      darkCheckbox.checked = isDark();
-      darkCheckbox.addEventListener('change', function() {
-        var next = darkCheckbox.checked ? 'dark' : 'light';
-        root.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-      });
-
-      // --- Minimal mode setting ---
-      var minimalCheckbox = document.getElementById('setting-minimal');
-      minimalCheckbox.checked = root.classList.contains('minimal');
-      minimalCheckbox.addEventListener('change', function() {
-        if (minimalCheckbox.checked) {
-          root.classList.add('minimal');
-          localStorage.setItem('minimal', 'true');
-        } else {
-          root.classList.remove('minimal');
-          localStorage.setItem('minimal', 'false');
+        if (e.key === 'Escape' && !settingsPanel.hidden) {
+          settingsPanel.hidden = true;
+          settingsBackdrop.hidden = true;
+          settingsToggle.setAttribute('aria-expanded', 'false');
         }
       });
 
@@ -138,13 +110,12 @@
       var stored = localStorage.getItem('enabledSources');
       var enabledSources = stored ? JSON.parse(stored) : allSlugs.slice();
 
-      var sourceToggles = document.querySelectorAll('.source-toggle');
-      sourceToggles.forEach(function(cb) {
+      document.querySelectorAll('.source-toggle').forEach(function(cb) {
         var slug = cb.getAttribute('data-slug');
         cb.checked = enabledSources.indexOf(slug) !== -1;
         cb.addEventListener('change', function() {
           var enabled = [];
-          sourceToggles.forEach(function(c) {
+          document.querySelectorAll('.source-toggle').forEach(function(c) {
             if (c.checked) enabled.push(c.getAttribute('data-slug'));
           });
           enabledSources = enabled;
@@ -169,16 +140,13 @@
         });
       });
 
-      var dateHeaders = document.querySelectorAll('.date-header');
-
       // --- Filtering ---
       var buttons = document.querySelectorAll('.filter-btn');
       var articles = document.querySelectorAll('.article-row');
+      var dateHeaders = document.querySelectorAll('.date-header');
       var viewMode = 'all';
 
-      function isEnabled(slug) {
-        return enabledSources.indexOf(slug) !== -1;
-      }
+      function isEnabled(slug) { return enabledSources.indexOf(slug) !== -1; }
 
       function applyFilters() {
         articles.forEach(function(article) {
@@ -187,7 +155,6 @@
           article.style.display = show ? '' : 'none';
         });
 
-        // Hide date headers whose group has no matching articles
         dateHeaders.forEach(function(header) {
           var group = header.nextElementSibling;
           var rows = group.querySelectorAll('.article-row');
@@ -201,27 +168,19 @@
 
         buttons.forEach(function(b) {
           var s = b.getAttribute('data-source');
-          var active;
           if (viewMode === 'all') {
-            active = s === 'all' || (s !== 'all' && isEnabled(s));
+            b.setAttribute('aria-pressed', s === 'all' || isEnabled(s) ? 'true' : 'false');
           } else {
-            active = s === viewMode;
+            b.setAttribute('aria-pressed', s === viewMode ? 'true' : 'false');
           }
-          b.setAttribute('aria-pressed', active ? 'true' : 'false');
-          if (s !== 'all') {
-            b.style.display = isEnabled(s) ? '' : 'none';
-          }
+          if (s !== 'all') b.style.display = isEnabled(s) ? '' : 'none';
         });
       }
 
       buttons.forEach(function(btn) {
         btn.addEventListener('click', function() {
           var src = btn.getAttribute('data-source');
-          if (src === viewMode || src === 'all') {
-            viewMode = 'all';
-          } else {
-            viewMode = src;
-          }
+          viewMode = (src === viewMode || src === 'all') ? 'all' : src;
           applyFilters();
         });
       });
@@ -232,6 +191,162 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
+
+    // --- NL time and weather ---
+    (function() {
+      var timeEl = document.getElementById('nl-time');
+      var weatherEl = document.getElementById('weather-boxes');
+
+      function updateTime() {
+        var now = new Date().toLocaleString('en-CA', {
+          timeZone: 'America/St_Johns',
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
+        timeEl.textContent = now + ' NT';
+      }
+      updateTime();
+      setInterval(updateTime, 30000);
+
+      var WMO_ICON = {
+        0:'\u2600\uFE0F',1:'\uD83C\uDF24',2:'\u26C5',3:'\u2601\uFE0F',
+        45:'\uD83C\uDF2B',48:'\uD83C\uDF2B',
+        51:'\uD83C\uDF26',53:'\uD83C\uDF26',55:'\uD83C\uDF26',
+        56:'\uD83C\uDF27\u2744',57:'\uD83C\uDF27\u2744',
+        61:'\uD83C\uDF27',63:'\uD83C\uDF27',65:'\uD83C\uDF27',
+        66:'\uD83C\uDF27\u2744',67:'\uD83C\uDF27\u2744',
+        71:'\uD83C\uDF28',73:'\uD83C\uDF28',75:'\uD83C\uDF28',77:'\uD83C\uDF28',
+        80:'\uD83C\uDF26',81:'\uD83C\uDF27',82:'\uD83C\uDF27',
+        85:'\uD83C\uDF28',86:'\uD83C\uDF28',
+        95:'\u26C8',96:'\u26C8',99:'\u26C8'
+      };
+      var WMO_TEXT = {
+        0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Overcast',
+        45:'Fog',48:'Fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',
+        56:'Freezing drizzle',57:'Freezing drizzle',
+        61:'Light rain',63:'Rain',65:'Heavy rain',
+        66:'Freezing rain',67:'Freezing rain',
+        71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',
+        80:'Light showers',81:'Showers',82:'Heavy showers',
+        85:'Snow showers',86:'Heavy snow showers',
+        95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'
+      };
+
+      var ALL_CITIES = [
+        {name:"Bonavista", lat:48.65, lon:-53.11},
+        {name:"Clarenville", lat:48.18, lon:-53.97},
+        {name:"Corner Brook", lat:48.95, lon:-57.95},
+        {name:"Deer Lake", lat:49.17, lon:-57.43},
+        {name:"Gander", lat:48.95, lon:-54.57},
+        {name:"Goose Bay", lat:53.30, lon:-60.33},
+        {name:"Grand Falls", lat:48.93, lon:-55.66},
+        {name:"Lab City", lat:52.95, lon:-66.91},
+        {name:"Marystown", lat:47.17, lon:-55.15},
+        {name:"Nain", lat:56.54, lon:-61.69},
+        {name:"Natuashish", lat:55.91, lon:-61.18},
+        {name:"Port aux Basques", lat:47.57, lon:-59.14},
+        {name:"St. John's", lat:47.56, lon:-52.71},
+        {name:"Stephenville", lat:48.55, lon:-58.58}
+      ];
+
+      var DEFAULTS = ["St. John's", "Corner Brook", "Goose Bay"];
+      var stored = localStorage.getItem('weatherCities');
+      var selected = stored ? JSON.parse(stored) : DEFAULTS;
+
+      function save() {
+        localStorage.setItem('weatherCities', JSON.stringify(selected));
+      }
+
+      function getSelected() {
+        return ALL_CITIES.filter(function(c) {
+          return selected.indexOf(c.name) !== -1;
+        });
+      }
+
+      function fetchAndRender() {
+        var cities = getSelected();
+        if (cities.length === 0) {
+          weatherEl.innerHTML = '<button class="weather-add" title="Add a location">+</button>';
+          weatherEl.querySelector('.weather-add').addEventListener('click', showPicker);
+          return;
+        }
+
+        var params = cities.map(function(c) {
+          return 'latitude=' + c.lat + '&longitude=' + c.lon;
+        });
+        var url = 'https://api.open-meteo.com/v1/forecast?' +
+          params.join('&') +
+          '&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=America/St_Johns';
+
+        fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+          var results = Array.isArray(data) ? data : [data];
+          var html = '';
+          for (var i = 0; i < results.length; i++) {
+            var c = results[i].current;
+            var temp = Math.round(c.temperature_2m);
+            var icon = WMO_ICON[c.weather_code] || '';
+            var title = cities[i].name + ': ' + temp + '\u00B0C ' + (WMO_TEXT[c.weather_code] || '');
+            var wxUrl = 'https://weather.gc.ca/en/location/index.html?coords=' + cities[i].lat + ',' + cities[i].lon;
+            html += '<span class="weather-box-wrap">' +
+              '<a class="weather-box" href="' + wxUrl + '" target="_blank" rel="noopener" title="' + title + '">' +
+              '<strong>' + cities[i].name + '</strong> ' + temp + '\u00B0 ' + icon + '</a>' +
+              '<button class="weather-remove" data-city="' + cities[i].name + '" title="Remove">\u00D7</button>' +
+              '</span>';
+          }
+          html += '<button class="weather-add" title="Add a location">+</button>';
+          weatherEl.innerHTML = html;
+
+          weatherEl.querySelectorAll('.weather-remove').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              var city = btn.getAttribute('data-city');
+              selected = selected.filter(function(n) { return n !== city; });
+              save();
+              fetchAndRender();
+            });
+          });
+          weatherEl.querySelector('.weather-add').addEventListener('click', showPicker);
+        });
+      }
+
+      function showPicker() {
+        var existing = document.getElementById('weather-picker');
+        if (existing) { existing.remove(); return; }
+
+        var picker = document.createElement('div');
+        picker.id = 'weather-picker';
+        picker.className = 'weather-picker';
+        var available = ALL_CITIES.filter(function(c) {
+          return selected.indexOf(c.name) === -1;
+        });
+        if (available.length === 0) {
+          picker.textContent = 'All locations added';
+        } else {
+          available.forEach(function(c) {
+            var btn = document.createElement('button');
+            btn.className = 'weather-pick-btn';
+            btn.textContent = c.name;
+            btn.addEventListener('click', function() {
+              selected.push(c.name);
+              save();
+              picker.remove();
+              fetchAndRender();
+            });
+            picker.appendChild(btn);
+          });
+        }
+        weatherEl.appendChild(picker);
+
+        function closePicker(e) {
+          if (!picker.contains(e.target) && !e.target.classList.contains('weather-add')) {
+            picker.remove();
+            document.removeEventListener('click', closePicker);
+          }
+        }
+        setTimeout(function() { document.addEventListener('click', closePicker); }, 0);
+      }
+
+      fetchAndRender();
+    })();
   </script>
 </body>
 </html>
