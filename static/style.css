@@ -183,7 +183,6 @@ header h1 {
   max-width: 960px;
   margin: 0 auto;
   padding: 0.6rem 1rem;
-  border-bottom: 2px solid var(--border-accent);
 }
 
 .filter-btn {
@@ -233,28 +232,6 @@ main {
   padding-top: 0.5rem;
 }
 
-.date-header.collapsible {
-  cursor: pointer;
-  user-select: none;
-}
-
-.date-header .collapse-icon {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  transition: transform 0.15s;
-}
-
-.date-header.collapsed .collapse-icon {
-  transform: rotate(-90deg);
-}
-
-.date-group-articles {
-  overflow: hidden;
-}
-
-.date-group-articles.collapsed {
-  display: none;
-}
 
 /* Article rows */
 .article-row {
@@ -330,6 +307,9 @@ footer {
 .header-home {
   color: var(--text);
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .header-home:hover { color: var(--link-hover); }
 

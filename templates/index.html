@@ -55,8 +55,8 @@
 
   <main id="feed" role="feed" aria-label="News articles">
     {% for date_label, group in articles_by_date %}
-    <h2 class="date-header{% if date_label != today_label %} collapsible collapsed{% endif %}" data-date="{{ date_label }}">{{ date_label }}{% if date_label != today_label %}<span class="collapse-icon">&#9660;</span>{% endif %}</h2>
-    <div class="date-group-articles{% if date_label != today_label %} collapsed{% endif %}">
+    <h2 class="date-header" data-date="{{ date_label }}">{{ date_label }}</h2>
+    <div class="date-group-articles">
     {% for article in group %}
     <article class="article-row" data-source="{{ article.source_slug }}" role="article">
       <time class="article-time" datetime="{{ article.published.isoformat() }}">{{ article.published.strftime('%I:%M%p').lstrip('0').lower() }}</time>
@@ -70,8 +70,8 @@
 
   <footer>
     <p><a href="search.html">Search archive</a></p>
+    <p>NL news outlet? <a href="https://github.com/johnmilley/nlnewsfeed/issues/new?template=add-outlet.yml">Request to be added</a></p>
     <p>Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} {{ 'NDT' if updated.utcoffset().total_seconds() == -9000 else 'NST' }}</time></p>
-    <!-- NL media: Want your outlet included here? All you need is an RSS feed. Learn how at https://www.rssboard.org/rss-specification or reach out via GitHub at https://github.com/johnmilley/nlnewsfeed -->
   </footer>
 
   <script>
@@ -169,15 +169,7 @@
         });
       });
 
-      // --- Collapsible date headers (not today) ---
       var dateHeaders = document.querySelectorAll('.date-header');
-      document.querySelectorAll('.date-header.collapsible').forEach(function(header) {
-        header.addEventListener('click', function() {
-          var group = header.nextElementSibling;
-          header.classList.toggle('collapsed');
-          group.classList.toggle('collapsed');
-        });
-      });
 
       // --- Filtering ---
       var buttons = document.querySelectorAll('.filter-btn');
@@ -195,7 +187,7 @@
           article.style.display = show ? '' : 'none';
         });
 
-        // Hide date headers whose group has no visible articles
+        // Hide date headers whose group has no matching articles
         dateHeaders.forEach(function(header) {
           var group = header.nextElementSibling;
           var rows = group.querySelectorAll('.article-row');
@@ -204,9 +196,7 @@
             if (rows[i].style.display !== 'none') { hasVisible = true; break; }
           }
           header.style.display = hasVisible ? '' : 'none';
-          group.style.visibility = hasVisible ? '' : 'hidden';
-          if (!hasVisible) group.style.display = 'none';
-          else if (!group.classList.contains('collapsed')) group.style.display = '';
+          group.style.display = hasVisible ? '' : 'none';
         });
 
         buttons.forEach(function(b) {

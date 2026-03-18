@@ -1,0 +1,33 @@
+name: Request to add a news outlet
+description: Submit your NL news outlet to be added to the feed
+title: "[Add Outlet] "
+labels: ["new-outlet"]
+body:
+  - type: input
+    id: outlet-name
+    attributes:
+      label: Outlet name
+      placeholder: e.g. The Telegram
+    validations:
+      required: true
+  - type: input
+    id: rss-url
+    attributes:
+      label: RSS feed URL
+      placeholder: e.g. https://example.com/feed.xml
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Website
+      placeholder: e.g. https://example.com
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      placeholder: Optional — any additional context
+    validations:
+      required: false
