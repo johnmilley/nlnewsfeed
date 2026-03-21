@@ -58,6 +58,8 @@
 
 /* ===== Base reset & layout ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:focus { outline: none; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -128,34 +130,6 @@ body {
   align-items: center;
 }
 
-.weather-remove {
-  display: none;
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-muted);
-  font-size: 10px;
-  line-height: 1;
-  padding: 0;
-  cursor: pointer;
-}
-
-.weather-box-wrap:hover .weather-remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.weather-remove:hover {
-  color: var(--text);
-  border-color: var(--text);
-}
-
 .weather-add {
   border: 1px dashed var(--border);
   background: transparent;
@@ -174,16 +148,36 @@ body {
 .weather-picker {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   z-index: 50;
   background: var(--bg);
   border: 1px solid var(--border);
-  padding: 0.3rem;
+  padding: 0.4rem;
+  width: 260px;
+  max-width: calc(100vw - 2rem);
+  margin-top: 0.3rem;
+}
+
+.weather-picker-search {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  outline: none;
+  margin-bottom: 0.3rem;
+}
+.weather-picker-search:focus { border-color: var(--accent); }
+.weather-picker-search::placeholder { color: var(--text-muted); }
+
+.weather-picker-list {
+  max-height: 200px;
+  overflow-y: auto;
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  max-width: 320px;
-  margin-top: 0.3rem;
 }
 
 .weather-pick-btn {
@@ -200,6 +194,12 @@ body {
 .weather-pick-btn:hover {
   border-color: var(--text);
   color: var(--text);
+}
+
+.weather-pick-btn.selected {
+  border-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
 }
 
 .skip-link {
@@ -246,6 +246,14 @@ header h1 {
   color: var(--accent);
 }
 
+/* Header toggles */
+.header-toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
 /* Theme toggle */
 .theme-toggle {
   display: flex;
@@ -256,7 +264,6 @@ header h1 {
   padding: 0.15rem 0.35rem;
   border-radius: 0;
   cursor: pointer;
-  margin-left: auto;
 }
 .theme-toggle:hover { border-color: var(--text); color: var(--text); }
 
@@ -272,44 +279,69 @@ header h1 {
 }
 .settings-toggle:hover { border-color: var(--text); color: var(--text); }
 
-.settings-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
+.settings-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.settings-panel {
-  position: absolute;
-  top: 100%;
+.settings-wrap .weather-picker {
+  left: auto;
   right: 0;
-  z-index: 100;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: 0.6rem 0.8rem;
-  width: 200px;
-  max-width: calc(100vw - 2rem);
-  font-size: 0.8rem;
+  width: auto;
+  min-width: 180px;
 }
-.settings-panel:focus { outline: none; }
 
-.settings-heading {
+.settings-wrap .weather-picker-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
+.picker-heading {
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin-bottom: 0.3rem;
+  padding: 0.1rem 0.4rem 0.3rem;
 }
 
-.settings-option {
+.source-pick-btn {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.1rem 0;
-  cursor: pointer;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.35rem 0.4rem;
+  font-size: 0.75rem;
   font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
 }
-.settings-option input[type="checkbox"] { cursor: pointer; }
+
+.source-pick-btn:last-child { border-bottom: none; }
+
+.source-pick-btn:hover { color: var(--text); }
+
+.source-pick-btn.selected { color: var(--text); }
+
+.source-pick-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.source-pick-check {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
 
 .theme-icon-moon { display: none; }
 [data-theme="dark"] .theme-icon-sun { display: none; }
@@ -603,10 +635,6 @@ footer {
     width: 16px;
     height: 16px;
     margin: 0 0.1rem;
-  }
-  .settings-panel {
-    right: 0.5rem;
-    width: calc(100vw - 1rem);
   }
   .search-filters { flex-direction: column; }
   .search-filters select,
