@@ -80,6 +80,15 @@
       var root = document.documentElement;
       var allSlugs = [{% for source in sources %}'{{ source.slug }}'{% if not loop.last %}, {% endif %}{% endfor %}];
 
+      // --- Auto-refresh on return ---
+      var lastActive = Date.now();
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && Date.now() - lastActive > 15 * 60 * 1000) {
+          location.reload();
+        }
+        lastActive = Date.now();
+      });
+
       // --- Theme toggle ---
       document.getElementById('theme-toggle').addEventListener('click', function() {
         var t = root.getAttribute('data-theme');
