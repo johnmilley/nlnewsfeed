@@ -533,14 +533,10 @@
       }
 
       function fetchAndRender() {
-        var picker = document.getElementById('weather-picker');
-        if (picker) picker.remove();
-
         var cities = getSelected();
         if (cities.length === 0) {
           weatherEl.innerHTML = '<button class="weather-add" title="Add a location">+</button>';
           weatherEl.querySelector('.weather-add').addEventListener('click', showPicker);
-          if (picker) weatherEl.appendChild(picker);
           return;
         }
 
@@ -552,9 +548,6 @@
           '&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=America/St_Johns';
 
         fetch(url).then(function(r) { return r.json(); }).then(function(data) {
-          var livePicker = document.getElementById('weather-picker');
-          if (livePicker) livePicker.remove();
-
           var results = Array.isArray(data) ? data : [data];
           var html = '';
           for (var i = 0; i < results.length; i++) {
@@ -571,8 +564,6 @@
           html += '<button class="weather-add" title="Manage locations">+</button>';
           weatherEl.innerHTML = html;
           weatherEl.querySelector('.weather-add').addEventListener('click', showPicker);
-          if (livePicker) weatherEl.appendChild(livePicker);
-          else if (picker) weatherEl.appendChild(picker);
         });
       }
 
@@ -580,9 +571,12 @@
         var existing = document.getElementById('weather-picker');
         if (existing) { existing.remove(); return; }
 
+        var backdrop = document.createElement('div');
+        backdrop.className = 'picker-backdrop';
+
         var picker = document.createElement('div');
         picker.id = 'weather-picker';
-        picker.className = 'weather-picker';
+        picker.className = 'weather-picker weather-picker-centered';
 
         var search = document.createElement('input');
         search.type = 'text';
@@ -612,31 +606,34 @@
             btn.textContent = (isSelected ? '\u2713 ' : '') + c.name;
             btn.addEventListener('click', function(e) {
               e.stopPropagation();
+              var nowSelected;
               if (selected.indexOf(c.name) !== -1) {
                 selected = selected.filter(function(n) { return n !== c.name; });
+                nowSelected = false;
               } else {
                 selected.push(c.name);
+                nowSelected = true;
               }
               save();
-              renderList(search.value);
+              btn.classList.toggle('selected', nowSelected);
+              btn.textContent = (nowSelected ? '\u2713 ' : '') + c.name;
               fetchAndRender();
             });
             list.appendChild(btn);
           });
         }
 
+        function closePicker() {
+          backdrop.remove();
+          picker.remove();
+        }
+
+        backdrop.addEventListener('click', closePicker);
         search.addEventListener('input', function() { renderList(search.value); });
         renderList('');
-        weatherEl.appendChild(picker);
+        document.body.appendChild(backdrop);
+        document.body.appendChild(picker);
         search.focus();
-
-        function closePicker(e) {
-          if (!picker.contains(e.target) && !e.target.classList.contains('weather-add')) {
-            picker.remove();
-            document.removeEventListener('click', closePicker);
-          }
-        }
-        setTimeout(function() { document.addEventListener('click', closePicker); }, 0);
       }
 
       fetchAndRender();

@@ -145,6 +145,13 @@ body {
   color: var(--text);
 }
 
+.picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .weather-picker {
   position: absolute;
   top: 100%;
@@ -158,11 +165,30 @@ body {
   margin-top: 0.3rem;
 }
 
+.weather-picker-centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  width: 320px;
+  max-height: 70vh;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-picker-centered .weather-picker-list {
+  max-height: none;
+  flex: 1;
+  overflow-y: auto;
+}
+
 .weather-picker-search {
   width: 100%;
   padding: 0.3rem 0.4rem;
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 1rem;
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
