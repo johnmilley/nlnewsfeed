@@ -24,18 +24,15 @@
   <a class="skip-link" href="#results">Skip to results</a>
 
   <header>
-    <h1><a href="./" class="header-home"><span class="brand-sub">A</span><span class="brand-main">GOOD FEED</span> <span class="brand-sub">of NL news</span></a></h1>
-    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode"><svg class="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><svg class="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <h1><a href="./" style="text-decoration:none;color:inherit"><span class="brand-sub">A&nbsp;</span><span class="brand-main">GOOD FEED</span> <span class="brand-sub">of NL news</span></a></h1>
+    <div class="header-toggles">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode"><svg class="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><svg class="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    </div>
   </header>
 
   <div class="search-controls">
     <div class="search-bar">
       <input type="search" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off">
-    </div>
-    <div class="search-filters">
-      <input type="date" id="date-from" aria-label="From date">
-      <span class="search-filter-sep">to</span>
-      <input type="date" id="date-to" aria-label="To date">
     </div>
     <div class="search-meta">
       <span id="result-count"></span>
@@ -44,7 +41,7 @@
 
   <main id="results" role="feed" aria-label="Search results">
     <div id="loading" class="search-status">Loading archive...</div>
-    <div id="ready" class="search-status" hidden>Search by keyword or select a date range.</div>
+    <div id="ready" class="search-status" hidden>Search by keyword.</div>
     <div id="empty" class="search-status" hidden>No articles match your search.</div>
   </main>
 
@@ -56,8 +53,6 @@
     (function() {
       var root = document.documentElement;
       var searchInput = document.getElementById('search-input');
-      var dateFrom = document.getElementById('date-from');
-      var dateTo = document.getElementById('date-to');
       var resultsEl = document.getElementById('results');
       var loadingEl = document.getElementById('loading');
       var readyEl = document.getElementById('ready');
@@ -98,7 +93,7 @@
           loadingEl.hidden = true;
           readyEl.hidden = false;
           readParams();
-          if (searchInput.value.trim() || dateFrom.value || dateTo.value) {
+          if (searchInput.value.trim()) {
             applySearch();
           } else {
             searchInput.focus();
@@ -111,11 +106,9 @@
       // --- Search and filter ---
       function applySearch() {
         var query = searchInput.value.toLowerCase().trim();
-        var from = dateFrom.value;
-        var to = dateTo.value;
         currentQuery = query;
 
-        if (!query && !from && !to) {
+        if (!query) {
           filtered = [];
           rendered = 0;
           clearResults();
@@ -128,21 +121,12 @@
 
         readyEl.hidden = true;
 
-        var words = query ? query.split(/\s+/) : [];
-        // Pad "to" date to end of day for inclusive comparison
-        var toEnd = to ? to + 'T23:59:59' : '';
+        var words = query.split(/\s+/);
 
         filtered = allArticles.filter(function(a) {
-          // Date filter
-          if (from && a.published.substring(0, 10) < from) return false;
-          if (toEnd && a.published.substring(0, 19) > toEnd) return false;
-
-          // Text filter
-          if (words.length > 0) {
-            var text = (a.title + ' ' + (a.summary || '')).toLowerCase();
-            for (var i = 0; i < words.length; i++) {
-              if (text.indexOf(words[i]) === -1) return false;
-            }
+          var text = (a.title + ' ' + (a.summary || '')).toLowerCase();
+          for (var i = 0; i < words.length; i++) {
+            if (text.indexOf(words[i]) === -1) return false;
           }
           return true;
         });
@@ -273,22 +257,16 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(applySearch, 200);
       });
-      dateFrom.addEventListener('change', applySearch);
-      dateTo.addEventListener('change', applySearch);
 
       // --- URL params ---
       function readParams() {
         var p = new URLSearchParams(window.location.search);
         if (p.get('q')) searchInput.value = p.get('q');
-        if (p.get('from')) dateFrom.value = p.get('from');
-        if (p.get('to')) dateTo.value = p.get('to');
       }
 
       function writeParams() {
         var p = new URLSearchParams();
         if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
-        if (dateFrom.value) p.set('from', dateFrom.value);
-        if (dateTo.value) p.set('to', dateTo.value);
         var qs = p.toString();
         var url = window.location.pathname + (qs ? '?' + qs : '');
         history.replaceState(null, '', url);

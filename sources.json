@@ -1,8 +1,18 @@
 [
-  { "name": "CBC", "slug": "cbc", "feed_url": "https://www.cbc.ca/webfeed/rss/rss-canada-newfoundland" },
-  { "name": "NTV", "slug": "ntv", "feed_url": "https://ntv.ca/feed/" },
-  { "name": "SaltWire", "slug": "saltwire", "feed_url": "https://www.saltwire.com/category/newfoundland-labrador/feed.xml" },
-  { "name": "Shoreline", "slug": "shoreline", "feed_url": "https://theshoreline.ca/feed/" },
-  { "name": "The Independent", "slug": "independent", "feed_url": "https://theindependent.ca/feed/" },
-  { "name": "VOCM", "slug": "vocm", "feed_url": "https://vocm.com/feed/" }
+  { "name": "CBC", "slug": "cbc", "feed_url": "https://www.cbc.ca/webfeed/rss/rss-canada-newfoundland", "type": "news" },
+  { "name": "NTV", "slug": "ntv", "feed_url": "https://ntv.ca/feed/", "type": "news" },
+  { "name": "SaltWire", "slug": "saltwire", "feed_url": "https://www.saltwire.com/category/newfoundland-labrador/feed.xml", "type": "news" },
+  { "name": "Shoreline", "slug": "shoreline", "feed_url": "https://theshoreline.ca/feed/", "type": "news" },
+  { "name": "The Independent", "slug": "independent", "feed_url": "https://theindependent.ca/feed/", "type": "news" },
+  { "name": "VOCM", "slug": "vocm", "feed_url": "https://vocm.com/feed/", "type": "news" },
+  { "name": "The Signal", "slug": "thesignal", "feed_url": "https://www.cbc.ca/podcasting/includes/crosstalk.xml", "type": "podcast", "source_url": "https://www.cbc.ca/listen/live-radio/1-89-thesignal" },
+  { "name": "The Honourable and The Hack", "slug": "honourableandhack", "feed_url": "https://anchor.fm/s/10d4b5bc8/podcast/rss", "type": "podcast" },
+  { "name": "Matt Barter", "slug": "mattbarter", "feed_url": "https://mattbarter.ca/feed/", "type": "blog" },
+  { "name": "MUN Gazette", "slug": "mungazette", "feed_url": "https://gazette.mun.ca/feed/", "type": "institution" },
+  { "name": "College of the North Atlantic", "slug": "cna", "feed_url": "https://www.cna.nl.ca/rss/news-feed.aspx", "type": "institution" },
+  { "name": "City of St. John's", "slug": "stjohns", "api_url": "https://www.stjohns.ca/Modules/NewsModule/services/getTopFiveNews.ashx?limit=20&lang=en", "type": "municipal" },
+  { "name": "City of Corner Brook", "slug": "cornerbrook", "feed_url": "https://www.cornerbrook.com/feed/", "type": "municipal" },
+  { "name": "Town of Grand Falls-Windsor", "slug": "grandfallswindsor", "feed_url": "https://grandfallswindsor.com/feed/", "type": "municipal" },
+  { "name": "Town of Happy Valley-Goose Bay", "slug": "hvgb", "feed_url": "https://townhvgb.com/feed/", "type": "municipal" },
+  { "name": "GovNL Releases", "slug": "govnl", "scrape_url": "https://www.gov.nl.ca/releases/r/", "type": "government" }
 ]

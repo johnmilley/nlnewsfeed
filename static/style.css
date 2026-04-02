@@ -5,54 +5,54 @@
 
 /* --- Light --- */
 :root {
-  --text: hsl(210deg 15% 6%);
-  --text-muted: hsl(210deg 9% 40%);
-  --text-time: hsl(210deg 12% 43%);
-  --link: hsl(210deg 15% 6%);
-  --link-hover: hsl(210deg 10% 30%);
-  --border-heavy: hsl(210deg 15% 6%);
-  --bg: hsl(210deg 25% 96%);
-  --bg-secondary: hsl(210deg 25% 88%);
-  --border: hsl(210deg 20% 77%);
-  --border-accent: hsl(210deg 14% 66%);
-  --accent: hsl(210deg 8% 43%);
-  --toggle-bg: hsl(210deg 25% 92%);
-  --toggle-hover: hsl(210deg 25% 88%);
+  --text: hsl(0deg 0% 20%);
+  --text-muted: hsl(0deg 0% 45%);
+  --text-time: hsl(0deg 0% 35%);
+  --link: hsl(0deg 0% 10%);
+  --link-hover: hsl(0deg 0% 30%);
+  --border-heavy: hsl(0deg 0% 20%);
+  --bg: hsl(0deg 0% 95%);
+  --bg-secondary: hsl(0deg 0% 90%);
+  --border: hsl(0deg 0% 80%);
+  --border-accent: hsl(0deg 0% 70%);
+  --accent: hsl(0deg 0% 45%);
+  --toggle-bg: hsl(0deg 0% 92%);
+  --toggle-hover: hsl(0deg 0% 88%);
 }
 
 /* --- Dark --- */
 [data-theme="dark"] {
-  --text: hsl(210deg 10% 90%);
-  --text-muted: hsl(210deg 9% 50%);
-  --text-time: hsl(210deg 12% 62%);
-  --link: hsl(210deg 10% 90%);
-  --link-hover: hsl(210deg 14% 66%);
-  --border-heavy: hsl(210deg 10% 90%);
-  --bg: hsl(210deg 15% 6%);
-  --bg-secondary: hsl(210deg 19% 9%);
-  --border: hsl(210deg 15% 18%);
-  --border-accent: hsl(210deg 10% 30%);
-  --accent: hsl(210deg 8% 50%);
-  --toggle-bg: hsl(210deg 15% 12%);
-  --toggle-hover: hsl(210deg 15% 15%);
+  --text: hsl(0deg 0% 83%);
+  --text-muted: hsl(0deg 0% 50%);
+  --text-time: hsl(0deg 0% 60%);
+  --link: hsl(0deg 0% 90%);
+  --link-hover: hsl(0deg 0% 70%);
+  --border-heavy: hsl(0deg 0% 83%);
+  --bg: hsl(0deg 0% 18%);
+  --bg-secondary: hsl(0deg 0% 15%);
+  --border: hsl(0deg 0% 25%);
+  --border-accent: hsl(0deg 0% 32%);
+  --accent: hsl(0deg 0% 50%);
+  --toggle-bg: hsl(0deg 0% 22%);
+  --toggle-hover: hsl(0deg 0% 25%);
 }
 
 /* --- System dark fallback --- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --text: hsl(210deg 10% 90%);
-    --text-muted: hsl(210deg 9% 50%);
-    --text-time: hsl(210deg 12% 62%);
-    --link: hsl(210deg 10% 90%);
-    --link-hover: hsl(210deg 14% 66%);
-    --border-heavy: hsl(210deg 10% 90%);
-    --bg: hsl(210deg 15% 6%);
-    --bg-secondary: hsl(210deg 19% 9%);
-    --border: hsl(210deg 15% 18%);
-    --border-accent: hsl(210deg 10% 30%);
-    --accent: hsl(210deg 8% 50%);
-    --toggle-bg: hsl(210deg 15% 12%);
-    --toggle-hover: hsl(210deg 15% 15%);
+    --text: hsl(0deg 0% 83%);
+    --text-muted: hsl(0deg 0% 50%);
+    --text-time: hsl(0deg 0% 60%);
+    --link: hsl(0deg 0% 90%);
+    --link-hover: hsl(0deg 0% 70%);
+    --border-heavy: hsl(0deg 0% 83%);
+    --bg: hsl(0deg 0% 18%);
+    --bg-secondary: hsl(0deg 0% 15%);
+    --border: hsl(0deg 0% 25%);
+    --border-accent: hsl(0deg 0% 32%);
+    --accent: hsl(0deg 0% 50%);
+    --toggle-bg: hsl(0deg 0% 22%);
+    --toggle-hover: hsl(0deg 0% 25%);
   }
 }
 
@@ -322,6 +322,7 @@ header h1 {
   flex-direction: column;
   flex-wrap: nowrap;
   gap: 0;
+  max-height: none;
 }
 
 .picker-heading {
@@ -331,6 +332,17 @@ header h1 {
   letter-spacing: 0.05em;
   color: var(--text-muted);
   padding: 0.1rem 0.4rem 0.3rem;
+}
+
+.picker-subheading {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 0.5rem 0.4rem 0.2rem;
+/*   border-top: 1px solid var(--border); */
+  margin-top: 0.2rem;
 }
 
 .source-pick-btn {
@@ -524,7 +536,7 @@ main {
   text-decoration: none;
 }
 .article-title a:hover, .article-link:hover { color: var(--link-hover); text-decoration: underline; }
-.article-title a.visited { color: var(--text-muted); opacity: 0.65; }
+.article-title a.visited { color: var(--link); }
 
 .article-content {
   min-width: 0;

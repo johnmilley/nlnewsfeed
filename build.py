@@ -11,6 +11,7 @@ from email.utils import parsedate_to_datetime
 
 import feedparser
 import requests
+from bs4 import BeautifulSoup
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -39,10 +40,122 @@ def to_nl_time(dt):
     return utc_dt.astimezone(NST)
 
 
-def fetch_articles(sources):
+def _fetch_release_time(url):
+    """Fetch the datePublished from a single gov.nl.ca release page."""
+    try:
+        resp = requests.get(url, timeout=10, headers={"User-Agent": "NLNewsFeed/1.0"})
+        resp.raise_for_status()
+        match = re.search(r'"datePublished"\s*:\s*"([^"]+)"', resp.text)
+        if match:
+            return datetime.fromisoformat(match.group(1))
+    except Exception:
+        pass
+    return None
+
+
+def scrape_gov_releases(source, cached_links):
+    """Scrape government news releases from gov.nl.ca. Skip already-cached links."""
+    articles = []
+    resp = requests.get(source["scrape_url"], timeout=15, headers={
+        "User-Agent": "NLNewsFeed/1.0"
+    })
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    current_date = None
+    for el in soup.select(".entry-content h2, .entry-content ul li"):
+        if el.name == "h2":
+            current_date = el.get_text(strip=True)
+            continue
+        if current_date is None:
+            continue
+        a_tag = el.select_one("span.title a")
+        dept_span = el.select_one("span.department")
+        if not a_tag:
+            continue
+        link = a_tag.get("href", "")
+        if not link.startswith("http"):
+            link = "https://www.gov.nl.ca" + link
+        if link in cached_links:
+            continue
+
+        # Fetch actual publish time from individual release page
+        pub = _fetch_release_time(link)
+        if pub is None:
+            year_match = re.search(r"/releases/(\d{4})/", link)
+            year = int(year_match.group(1)) if year_match else datetime.now().year
+            try:
+                pub = datetime.strptime(f"{current_date} {year}", "%B %d %Y")
+            except ValueError:
+                pub = datetime.now()
+            pub = pub.replace(hour=12, tzinfo=NST)
+        if pub.tzinfo is None:
+            pub = pub.replace(tzinfo=timezone.utc)
+
+        department = dept_span.get_text(strip=True) if dept_span else ""
+        articles.append({
+            "title": a_tag.get_text(strip=True),
+            "link": link,
+            "published": to_nl_time(pub),
+            "source_name": source["name"],
+            "source_slug": source["slug"],
+            "summary": department,
+        })
+    return articles
+
+
+def fetch_stjohns_news(source):
+    """Fetch news from St. John's JSON API."""
+    articles = []
+    resp = requests.get(source["api_url"], timeout=15, headers={
+        "User-Agent": "NLNewsFeed/1.0"
+    })
+    resp.raise_for_status()
+    for item in resp.json():
+        title = html.unescape(item.get("title", "Untitled"))
+        link = item.get("link", "#")
+        # Parse date and time: "Thursday, April 2, 2026" + "02:00:18 PM"
+        date_str = item.get("postedDate", "")
+        time_str = item.get("postedTime", "12:00:00 PM")
+        try:
+            pub = datetime.strptime(f"{date_str} {time_str}", "%A, %B %d, %Y %I:%M:%S %p")
+            pub = pub.replace(tzinfo=NST)
+        except ValueError:
+            pub = datetime.now(timezone.utc)
+        summary = item.get("description", "")
+        summary = re.sub(r"<[^>]+>", "", summary).strip()
+        summary = html.unescape(summary)
+        summary = summary[:200].rsplit(" ", 1)[0] if len(summary) > 200 else summary
+        articles.append({
+            "title": title,
+            "link": link,
+            "published": to_nl_time(pub),
+            "source_name": source["name"],
+            "source_slug": source["slug"],
+            "summary": summary,
+        })
+    return articles
+
+
+def fetch_articles(sources, cached_links=None):
+    cached_links = cached_links or set()
     articles = []
     for source in sources:
         print(f"Fetching {source['name']}...")
+        if source.get("scrape_url"):
+            try:
+                articles.extend(scrape_gov_releases(source, cached_links))
+            except Exception as e:
+                print(f"  Error scraping {source['name']}: {e}")
+            continue
+        if source.get("api_url"):
+            try:
+                articles.extend(fetch_stjohns_news(source))
+            except Exception as e:
+                print(f"  Error fetching {source['name']}: {e}")
+            continue
+        if not source.get("feed_url"):
+            continue
         try:
             resp = requests.get(source["feed_url"], timeout=15, headers={
                 "User-Agent": "NLNewsFeed/1.0"
@@ -76,9 +189,21 @@ def fetch_articles(sources):
             summary = html.unescape(summary)
             summary = summary[:200].rsplit(" ", 1)[0] if len(summary) > 200 else summary
 
+            link = entry.get("link", "")
+            if not link or not link.startswith("http"):
+                # Podcast feeds often lack <link>; use enclosure URL instead
+                enclosures = entry.get("enclosures", [])
+                if enclosures:
+                    link = enclosures[0].get("href", "#")
+                else:
+                    link = "#"
+            # If link points to a media file, use source_url as a landing page
+            if link.endswith((".mp3", ".m4a", ".wav")) and source.get("source_url"):
+                link = source["source_url"]
+
             articles.append({
                 "title": entry.get("title", "Untitled"),
-                "link": entry.get("link", "#"),
+                "link": link,
                 "published": to_nl_time(published),
                 "source_name": source["name"],
                 "source_slug": source["slug"],
@@ -108,14 +233,23 @@ def save_cache(articles):
     print(f"Saved {len(articles)} articles to cache.")
 
 
+def _dedup_key(article):
+    """Return a dedup key: (title, published, source_slug) for shared-link sources, else link."""
+    pub = article["published"]
+    if isinstance(pub, datetime):
+        pub = pub.isoformat()
+    return (article["title"], pub, article["source_slug"])
+
+
 def merge_articles(cached, fresh):
-    """Merge fresh articles into cached, deduplicating by link URL."""
-    seen = {a["link"] for a in cached}
+    """Merge fresh articles into cached, deduplicating by content."""
+    seen = {_dedup_key(a) for a in cached}
     merged = list(cached)
     new_count = 0
     for article in fresh:
-        if article["link"] not in seen:
-            seen.add(article["link"])
+        key = _dedup_key(article)
+        if key not in seen:
+            seen.add(key)
             merged.append(article)
             new_count += 1
     print(f"Merged {new_count} new articles ({len(merged)} total).")
@@ -233,8 +367,9 @@ def main():
     cached_raw = load_cache()
     cached = deserialize_articles(cached_raw)
 
-    # Fetch fresh articles from RSS
-    fresh = fetch_articles(sources)
+    # Fetch fresh articles from RSS (pass cached links so scrapers skip known entries)
+    cached_links = {a["link"] for a in cached}
+    fresh = fetch_articles(sources, cached_links)
 
     # Merge fresh into cache (dedup by URL)
     all_articles = merge_articles(cached, fresh)
