@@ -18,12 +18,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="NL News Feed">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/png" href="icons/icon-192-light.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" href="icons/icon-192-light.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="icons/icon-192-light.png" media="(prefers-color-scheme: light)">
+  <link rel="apple-touch-icon" href="icons/icon-192-light.png">
   <script>
     (function() {
       var r = document.documentElement;
       var theme = localStorage.getItem('theme');
       if (theme) r.setAttribute('data-theme', theme);
+      if (localStorage.getItem('minimal') === 'true') r.classList.add('minimal');
     })();
   </script>
 </head>
@@ -32,8 +38,8 @@
 
   <div class="sticky-header">
   <div class="top-bar">
-    <span id="nl-time" class="top-bar-item"></span>
     <span id="weather-boxes" class="top-bar-weather"></span>
+    <span id="nl-time" class="top-bar-item"></span>
   </div>
 
   <header>
@@ -72,6 +78,23 @@
   <footer>
     <p><a href="search.html">Search archive</a></p>
     <p>NL news outlet? <a href="https://github.com/johnmilley/nlnewsfeed/issues/new?template=add-outlet.yml">Request to be added</a></p>
+    <details class="install-guide">
+      <summary>Install as app</summary>
+      <div class="install-steps">
+        <p><strong>iPhone / iPad</strong></p>
+        <ol>
+          <li>Tap the Share button <span class="install-icon">&#xFEFF;&#x2B06;&#xFE0E;</span> in Safari</li>
+          <li>Scroll down and tap <strong>Add to Home Screen</strong></li>
+          <li>Tap <strong>Add</strong></li>
+        </ol>
+        <p><strong>Android</strong></p>
+        <ol>
+          <li>Tap the menu <span class="install-icon">&#x22EE;</span> in Chrome</li>
+          <li>Tap <strong>Add to Home Screen</strong></li>
+          <li>Tap <strong>Add</strong></li>
+        </ol>
+      </div>
+    </details>
     <p>Last updated: <time datetime="{{ updated.isoformat() }}">{{ updated.strftime('%B %d, %Y at %I:%M %p') }} {{ 'NDT' if updated.utcoffset().total_seconds() == -9000 else 'NST' }}</time></p>
   </footer>
 
@@ -96,12 +119,19 @@
       });
 
       // --- Theme toggle ---
+      function updateFavicon(isDark) {
+        var icon = isDark ? 'icons/icon-192.png' : 'icons/icon-192-light.png';
+        var links = document.querySelectorAll('link[rel="icon"]');
+        links.forEach(function(l) { l.href = icon; });
+      }
+
       document.getElementById('theme-toggle').addEventListener('click', function() {
         var t = root.getAttribute('data-theme');
         var dark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
         var next = dark ? 'light' : 'dark';
         root.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
+        updateFavicon(next === 'dark');
       });
 
       // --- Enabled sources ---
@@ -128,6 +158,25 @@
         var picker = document.createElement('div');
         picker.id = 'source-picker';
         picker.className = 'weather-picker';
+
+        var minimalBtn = document.createElement('button');
+        minimalBtn.className = 'source-pick-btn';
+        if (root.classList.contains('minimal')) minimalBtn.classList.add('selected');
+        var minimalSpan = document.createElement('span');
+        minimalSpan.textContent = 'Minimal mode';
+        minimalBtn.appendChild(minimalSpan);
+        var minimalCheck = document.createElement('span');
+        minimalCheck.className = 'source-pick-check';
+        minimalCheck.textContent = root.classList.contains('minimal') ? '\u2713' : '';
+        minimalBtn.appendChild(minimalCheck);
+        minimalBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var on = root.classList.toggle('minimal');
+          localStorage.setItem('minimal', on ? 'true' : 'false');
+          minimalBtn.classList.toggle('selected', on);
+          minimalCheck.textContent = on ? '\u2713' : '';
+        });
+        picker.appendChild(minimalBtn);
 
         var heading = document.createElement('h2');
         heading.className = 'picker-heading';

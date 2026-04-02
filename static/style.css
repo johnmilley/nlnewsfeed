@@ -18,6 +18,10 @@
   --accent: hsl(0deg 0% 45%);
   --toggle-bg: hsl(0deg 0% 92%);
   --toggle-hover: hsl(0deg 0% 88%);
+  --header-bg: var(--bg);
+  --header-text: var(--text);
+  --header-muted: var(--text-muted);
+  --header-border: var(--border);
 }
 
 /* --- Dark --- */
@@ -35,6 +39,10 @@
   --accent: hsl(0deg 0% 50%);
   --toggle-bg: hsl(0deg 0% 22%);
   --toggle-hover: hsl(0deg 0% 25%);
+  --header-bg: var(--bg);
+  --header-text: var(--text);
+  --header-muted: var(--text-muted);
+  --header-border: var(--border);
 }
 
 /* --- System dark fallback --- */
@@ -53,6 +61,10 @@
     --accent: hsl(0deg 0% 50%);
     --toggle-bg: hsl(0deg 0% 22%);
     --toggle-hover: hsl(0deg 0% 25%);
+    --header-bg: var(--bg);
+    --header-text: var(--text);
+    --header-muted: var(--text-muted);
+    --header-border: var(--border);
   }
 }
 
@@ -69,25 +81,38 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 
-/* Sticky header wrapper */
+/* Sticky header wrapper — inverted from page background */
 .sticky-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  background: var(--header-bg);
+  color: var(--header-text);
+  border-bottom: 1px solid var(--header-border);
 }
+.sticky-header a, .sticky-header .brand-main { color: var(--header-text); }
+.sticky-header .brand-sub { color: var(--header-muted); }
+.sticky-header .top-bar-item { color: var(--header-muted); }
+.sticky-header .weather-box { color: var(--header-muted); border-color: var(--header-border); }
+.sticky-header .weather-box strong { color: var(--header-text); }
+.sticky-header .weather-box:hover { color: var(--header-text); border-color: var(--header-text); }
+.sticky-header .weather-add { color: var(--header-muted); border-color: var(--header-border); }
+.sticky-header .weather-add:hover { color: var(--header-text); border-color: var(--header-text); }
+.sticky-header .theme-toggle { color: var(--header-muted); border-color: var(--header-border); }
+.sticky-header .theme-toggle:hover { color: var(--header-text); border-color: var(--header-text); }
+.sticky-header .settings-toggle { color: var(--header-muted); border-color: var(--header-border); }
+.sticky-header .settings-toggle:hover { color: var(--header-text); border-color: var(--header-text); }
 
 /* Top bar — time & weather */
 .top-bar {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
   max-width: 960px;
   margin: 0 auto;
   padding: 0.5rem 1rem 0;
   font-size: 0.75rem;
-  flex-wrap: wrap;
   position: relative;
 }
 
@@ -100,6 +125,7 @@ body {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
   position: relative;
 }
 
@@ -536,7 +562,7 @@ main {
   text-decoration: none;
 }
 .article-title a:hover, .article-link:hover { color: var(--link-hover); text-decoration: underline; }
-.article-title a.visited { color: var(--link); }
+.article-title a.visited { color: var(--text-muted); opacity: 0.65; }
 
 .article-content {
   min-width: 0;
@@ -565,6 +591,27 @@ footer {
   color: var(--text-muted);
   border-top: 2px solid var(--border-accent);
 }
+footer a { color: var(--text); text-decoration: underline; }
+footer a:hover { color: var(--link-hover); }
+
+.install-guide { margin: 0.5rem 0; }
+.install-guide summary {
+  cursor: pointer;
+  color: var(--text);
+  text-decoration: underline;
+  list-style: none;
+}
+.install-guide summary::-webkit-details-marker { display: none; }
+.install-steps {
+  text-align: left;
+  max-width: 320px;
+  margin: 0.5rem auto;
+  color: var(--text);
+}
+.install-steps p { margin: 0.5rem 0 0.2rem; }
+.install-steps ol { margin: 0; padding-left: 1.2rem; }
+.install-steps li { margin: 0.15rem 0; }
+.install-icon { font-weight: bold; }
 
 /* Header home link */
 .header-home {
@@ -656,6 +703,8 @@ footer {
 }
 
 /* Minimal mode */
+.minimal .filter-text { display: none; }
+.minimal .filter-btn[data-source="all"] .filter-text { display: inline; }
 
 @media (max-width: 600px) {
   header { padding: 0.7rem 1rem; }
