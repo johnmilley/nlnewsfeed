@@ -150214,5 +150214,37 @@
     "source_name": "VOCM",
     "source_slug": "vocm",
     "summary": "(VOCM News)"
+  },
+  {
+    "title": "Environmental Assessment Bulletin",
+    "link": "https://www.gov.nl.ca/releases/2026/eccc/0417n04/",
+    "published": "2026-04-17T14:42:28-02:30",
+    "source_name": "GovNL Releases",
+    "source_slug": "govnl",
+    "summary": "Environment, Conservation and Climate Change"
+  },
+  {
+    "title": "Investing in ambition",
+    "link": "https://gazette.mun.ca/public-engagement/investing-in-ambition/",
+    "published": "2026-04-17T14:40:28-02:30",
+    "source_name": "MUN Gazette",
+    "source_slug": "mungazette",
+    "summary": "A new investment of $500,000 from the Woodward family is set to expand the Mel Woodward Cup, Memorial University\u2019s flagship student startup competition. The investment builds on the Woodward family\u2019s"
+  },
+  {
+    "title": "The Indy is hiring a summer student research assistant",
+    "link": "https://theindependent.ca/announcements/the-indy-is-hiring-a-summer-student-research-assistant/",
+    "published": "2026-04-17T14:40:25-02:30",
+    "source_name": "The Independent",
+    "source_slug": "independent",
+    "summary": "This Canada Summer Jobs position will employ a student/youth to help us with research and organizing our website"
+  },
+  {
+    "title": "NDP to introduce resolution calling to cap executive salaries at NL Power",
+    "link": "https://ntv.ca/business/ndp-to-introduce-resolution-calling-to-cap-executive-salaries-at-nl-power/",
+    "published": "2026-04-17T14:18:37-02:30",
+    "source_name": "NTV",
+    "source_slug": "ntv",
+    "summary": "Provincial NDP Leader Jim Dinn will introduce a private member\u2019s resolution in the House of Assembly next week calling on government to cap executive salaries at Newfoundland Power \u2013 ensuring that"
   }
 ]
