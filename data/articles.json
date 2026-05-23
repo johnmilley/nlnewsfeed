@@ -170550,5 +170550,13 @@
     "source_name": "VOCM",
     "source_slug": "vocm",
     "summary": "Bob Robichaud (VOCM News)"
+  },
+  {
+    "title": "Gas dips below $2 on Avalon Peninsula with latest price adjustment",
+    "link": "https://www.cbc.ca/news/canada/newfoundland-labrador/nl-fuel-prices-may-23-26-9.7209624?cmp=rss",
+    "published": "2026-05-23T09:32:07-02:30",
+    "source_name": "CBC",
+    "source_slug": "cbc",
+    "summary": "The price of gas dropped 2.1 cents per litre across Newfoundland and Labrador on Saturday morning."
   }
 ]
