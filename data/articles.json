@@ -182694,5 +182694,13 @@
     "source_name": "VOCM",
     "source_slug": "vocm",
     "summary": "(VOCM News)"
+  },
+  {
+    "title": "Environment Canada issues air quality statement after fire at Robin Hood Bay",
+    "link": "https://www.cbc.ca/news/canada/newfoundland-labrador/air-quality-robin-hood-bay-fire-9.7235111?cmp=rss",
+    "published": "2026-06-14T19:03:21-02:30",
+    "source_name": "CBC",
+    "source_slug": "cbc",
+    "summary": "Environment Canada has issued an air quality warning for the majority of the northeast Avalon Peninsula after a fire at the Robin Hood Bay waste disposal facility."
   }
 ]
