@@ -186022,5 +186022,21 @@
     "source_name": "SaltWire",
     "source_slug": "saltwire",
     "summary": ""
+  },
+  {
+    "title": "Environmental Assessment Bulletin",
+    "link": "https://www.gov.nl.ca/releases/2026/eccc/0619n08/",
+    "published": "2026-06-19T16:05:35-02:30",
+    "source_name": "GovNL Releases",
+    "source_slug": "govnl",
+    "summary": "Environment, Conservation and Climate Change"
+  },
+  {
+    "title": "N.L. Indigenous Relations Minister acknowledges 'distrust,' but does not address Innu history timeline",
+    "link": "https://www.cbc.ca/news/canada/newfoundland-labrador/nl-government-innu-exhibit-9.7241833?cmp=rss",
+    "published": "2026-06-19T13:51:02-02:30",
+    "source_name": "CBC",
+    "source_slug": "cbc",
+    "summary": "Newfoundland and Labrador Indigenous Relations and Reconciliation Minister Lela Evans said while she was \"sorry for the impact\" the cancellation of the exhibit has had, she did not address any of the"
   }
 ]
