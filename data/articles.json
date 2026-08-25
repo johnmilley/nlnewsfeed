@@ -219910,5 +219910,13 @@
     "source_name": "CBC",
     "source_slug": "cbc",
     "summary": ""
+  },
+  {
+    "title": "Environmental Assessment Bulletin",
+    "link": "https://www.gov.nl.ca/releases/2026/eccc/0825n01/",
+    "published": "2026-08-25T09:40:00-02:30",
+    "source_name": "GovNL Releases",
+    "source_slug": "govnl",
+    "summary": "Environment, Conservation and Climate Change"
   }
 ]
