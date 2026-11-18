@@ -53,7 +53,11 @@ city list), NL clock, auto-refresh on return after 15 min, and service-worker re
 CSS is in `static/style.css` (grayscale palette, CSS custom properties, `?v=<md5>` cache-bust).
 No build tooling or JS bundler.
 
-**Service worker** (`static/sw.js`): network-first for navigations, cache-first for assets.
+**Service worker** (`static/sw.js`): network-first for pages, CSS, and article data, with
+saved copies used offline; cache-first for images. Third-party requests are not intercepted.
+
+**Search loading** (`templates/search.html`): the newest year loads with the page. Older years
+load on the first search, and their matches are appended as each year arrives.
 
 **Deployment** (`.github/workflows/build.yml`): GitHub Actions builds every 15 min, commits
 the updated `data/articles.json` back to `main`, and uploads `output/` as a Pages artifact.

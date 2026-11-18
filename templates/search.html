@@ -68,6 +68,12 @@
       var PAGE_SIZE = 100;
       var rendered = 0;
       var filtered = [];
+      var currentWords = [];
+      var archiveReady = false;
+      var olderYears = [];
+      var olderRequested = false;
+      var loadingOlder = false;
+      var olderFailed = false;
 
       // --- Theme toggle ---
       document.getElementById('theme-toggle').addEventListener('click', function() {
@@ -78,21 +84,59 @@
         localStorage.setItem('theme', next);
       });
 
-      // --- Load all years upfront ---
-      fetch('data/years.json')
-        .then(function(r) { return r.json(); })
-        .then(function(yearIndex) {
-          return Promise.all(yearIndex.map(function(y) {
-            return fetch('data/' + y.year + '.json').then(function(r) { return r.json(); });
-          }));
-        })
-        .then(function(yearArrays) {
-          for (var i = 0; i < yearArrays.length; i++) {
-            allArticles = allArticles.concat(yearArrays[i]);
-          }
-          allArticles.sort(function(a, b) {
+      // --- Load the newest year now, and older years on the first search ---
+      function fetchJson(url) {
+        return fetch(url).then(function(r) {
+          if (!r.ok) throw new Error('Could not load ' + url);
+          return r.json();
+        });
+      }
+
+      function fetchYear(year) {
+        return fetchJson('data/' + year + '.json').then(function(articles) {
+          return articles.sort(function(a, b) {
             return b.published.localeCompare(a.published);
           });
+        });
+      }
+
+      function loadOlderYears() {
+        if (olderRequested || !olderYears.length) return;
+        olderRequested = true;
+        loadingOlder = true;
+
+        var requests = olderYears.map(function(year) {
+          return fetchYear(year).catch(function() {
+            olderFailed = true;
+            return [];
+          });
+        });
+
+        // Requests run together, but results are added newest year first.
+        requests.reduce(function(chain, request) {
+          return chain.then(function() { return request; }).then(addOlderArticles);
+        }, Promise.resolve()).then(function() {
+          loadingOlder = false;
+          updateStatus();
+        });
+      }
+
+      function addOlderArticles(articles) {
+        allArticles = allArticles.concat(articles);
+        if (!currentQuery) return;
+        filtered = filtered.concat(articles.filter(matchesQuery));
+        if (isNearBottom()) renderBatch();
+        updateStatus();
+      }
+
+      fetchJson('data/years.json')
+        .then(function(yearIndex) {
+          olderYears = yearIndex.slice(1).map(function(y) { return y.year; });
+          return fetchYear(yearIndex[0].year);
+        })
+        .then(function(articles) {
+          allArticles = articles;
+          archiveReady = true;
           loadingEl.hidden = true;
           readyEl.hidden = false;
           readParams();
@@ -107,7 +151,34 @@
         });
 
       // --- Search and filter ---
+      function matchesQuery(a) {
+        var text = (a.title + ' ' + (a.summary || '')).toLowerCase();
+        for (var i = 0; i < currentWords.length; i++) {
+          if (text.indexOf(currentWords[i]) === -1) return false;
+        }
+        return true;
+      }
+
+      function updateStatus() {
+        if (!currentQuery) {
+          countEl.textContent = '';
+          emptyEl.hidden = true;
+          return;
+        }
+        var total = filtered.length;
+        var text = total === 1 ? '1 article' : total + ' articles';
+        if (loadingOlder) {
+          text += ', searching older years...';
+        } else if (olderFailed) {
+          text += ' (some older years could not be loaded)';
+        }
+        countEl.textContent = text;
+        emptyEl.hidden = total > 0 || loadingOlder;
+      }
+
       function applySearch() {
+        if (!archiveReady) return;
+
         var query = searchInput.value.toLowerCase().trim();
         currentQuery = query;
 
@@ -115,8 +186,7 @@
           filtered = [];
           rendered = 0;
           clearResults();
-          countEl.textContent = '';
-          emptyEl.hidden = true;
+          updateStatus();
           readyEl.hidden = false;
           writeParams();
           return;
@@ -124,23 +194,15 @@
 
         readyEl.hidden = true;
 
-        var words = query.split(/\s+/);
-
-        filtered = allArticles.filter(function(a) {
-          var text = (a.title + ' ' + (a.summary || '')).toLowerCase();
-          for (var i = 0; i < words.length; i++) {
-            if (text.indexOf(words[i]) === -1) return false;
-          }
-          return true;
-        });
+        currentWords = query.split(/\s+/);
+        filtered = allArticles.filter(matchesQuery);
 
         rendered = 0;
         clearResults();
         renderBatch();
 
-        var total = filtered.length;
-        countEl.textContent = total === 1 ? '1 article' : total + ' articles';
-        emptyEl.hidden = total > 0;
+        loadOlderYears();
+        updateStatus();
         writeParams();
       }
 
@@ -248,11 +310,13 @@
       }
 
       // --- Infinite scroll ---
+      function isNearBottom() {
+        return window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
+      }
+
       window.addEventListener('scroll', function() {
         if (rendered >= filtered.length) return;
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 400) {
-          renderBatch();
-        }
+        if (isNearBottom()) renderBatch();
       });
 
       // --- Event listeners ---

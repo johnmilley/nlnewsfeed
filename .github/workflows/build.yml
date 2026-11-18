@@ -2,7 +2,8 @@ name: Build and Deploy
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    # Offset from round minutes, when GitHub's scheduler is busiest.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
 
 permissions:

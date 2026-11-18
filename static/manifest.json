@@ -2,7 +2,7 @@
   "name": "Good Feed: NL News",
   "short_name": "Good Feed",
   "description": "Newfoundland & Labrador news from local sources",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#111111",
